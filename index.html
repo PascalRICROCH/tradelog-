@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal de Compte</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────── RESET & BASE ─────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0f1117;
+  --panel:     #171b26;
+  --panel2:    #1e2333;
+  --panel3:    #252c40;
+  --border:    #2a3150;
+  --border2:   #384070;
+  --accent:    #6c8cff;
+  --win:       #22c55e;
+  --win-bg:    rgba(34,197,94,0.09);
+  --win-brd:   rgba(34,197,94,0.30);
+  --loss:      #ef4444;
+  --loss-bg:   rgba(239,68,68,0.09);
+  --loss-brd:  rgba(239,68,68,0.30);
+  --be:        #f59e0b;
+  --be-bg:     rgba(245,158,11,0.09);
+  --be-brd:    rgba(245,158,11,0.30);
+  --txt:       #e2e8f8;
+  --txt2:      #7a8aaa;
+  --txt3:      #3d4a68;
+  --font:      'Inter', system-ui, sans-serif;
+}
+
+/* Themes */
+.th-sombre  { }
+.th-bleu    { --bg:#02091a; --panel:#071428; --panel2:#0c1c38; --panel3:#112248; --border:#1a3060; --border2:#254880; --accent:#4d9fff; }
+.th-violet  { --bg:#09031a; --panel:#110828; --panel2:#1a0f38; --panel3:#221548; --border:#381a60; --border2:#502888; --accent:#a855f7; }
+.th-clair   { --bg:#f0f4ff; --panel:#ffffff; --panel2:#eaeeff; --panel3:#dde4ff; --border:#c5d0f0; --border2:#a0b0e0; --txt:#1a2050; --txt2:#485580; --txt3:#8898c0; --accent:#3b62e8; }
+.th-orange  { --bg:#110800; --panel:#1c1000; --panel2:#271800; --panel3:#332000; --border:#442800; --border2:#604000; --accent:#f97316; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--txt);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-x: hidden;
+}
+
+/* ─────────────── LAYOUT ─────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ─────────────── TOPBAR ─────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 52px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--txt);
+}
+.topbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--txt2);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: .15s;
+}
+.topbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─────────────── STATS STRIP ─────────────── */
+.stats-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 20px;
+  height: 46px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 22px 0 0;
+  margin-right: 22px;
+  border-right: 1px solid var(--border);
+  min-width: 80px;
+}
+.stat-block:last-of-type { border-right: none; }
+.stat-lbl { font-size: 9px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--txt3); }
+.stat-val { font-size: 15px; font-weight: 700; color: var(--txt); margin-top: 1px; }
+.details-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--txt3);
+  font-family: var(--font);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: .15s;
+  white-space: nowrap;
+}
+.details-btn:hover { color: var(--txt2); }
+
+/* ─────────────── DETAILS PANEL ─────────────── */
+.details-panel {
+  display: none;
+  background: var(--panel2);
+  border-bottom: 1px solid var(--border);
+}
+.details-panel.open {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+.det-cell {
+  padding: 13px 18px;
+  border-right: 1px solid var(--border);
+}
+.det-cell:last-child { border-right: none; }
+.det-lbl { font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--txt3); margin-bottom: 3px; }
+.det-val { font-size: 15px; font-weight: 700; }
+.det-sub { font-size: 11px; color: var(--txt3); margin-top: 1px; }
+
+/* ─────────────── MAIN BODY ─────────────── */
+.body-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─────────────── CALENDAR PANEL ─────────────── */
+.cal-panel {
+  flex: 1;
+  padding: 22px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.cal-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--txt2);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .15s;
+}
+.cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cal-month { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+
+.cal-grid-wrap { }
+.day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.day-name {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt3);
+  padding: 2px 0 5px;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-cell {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 2px 5px;
+  min-height: 58px;
+  transition: border-color .15s, transform .1s;
+  position: relative;
+}
+.cal-cell:hover { border-color: var(--border2); transform: scale(1.04); z-index: 2; }
+.cal-cell.empty { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+.cal-cell.win  { background: var(--win-bg);  border-color: var(--win-brd); }
+.cal-cell.loss { background: var(--loss-bg); border-color: var(--loss-brd); }
+.cal-cell.be   { background: var(--be-bg);   border-color: var(--be-brd); }
+.cal-cell.active { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(108,140,255,.2); }
+.cal-cell.today .cell-num { color: var(--accent); font-weight: 700; }
+
+.cell-num  { font-size: 13px; font-weight: 500; line-height: 1; }
+.cell-amt  { font-size: 10px; font-weight: 500; margin-top: 4px; }
+.cal-cell.win  .cell-amt { color: var(--win); }
+.cal-cell.loss .cell-amt { color: var(--loss); }
+.cal-cell.be   .cell-amt { color: var(--be); }
+.cell-dot  { width: 4px; height: 4px; border-radius: 50%; margin-top: 4px; }
+.cal-cell.win  .cell-dot { background: var(--win); }
+.cal-cell.loss .cell-dot { background: var(--loss); }
+.cal-cell.be   .cell-dot { background: var(--be); }
+
+/* ─────────────── ENTRY PANEL ─────────────── */
+.entry-panel {
+  width: 320px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.entry-head {
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt2);
+}
+.entry-body { padding: 18px; flex: 1; }
+
+/* Result placeholder */
+.res-placeholder {
+  font-size: 11px;
+  color: var(--txt3);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* Result buttons */
+.res-row { display: flex; gap: 8px; margin-bottom: 18px; }
+.res-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--txt2);
+  transition: .15s;
+}
+.res-btn.win-btn:hover,
+.res-btn.win-btn.on { border-color: var(--win); background: var(--win-bg); color: var(--win); }
+.res-btn.loss-btn:hover,
+.res-btn.loss-btn.on { border-color: var(--loss); background: var(--loss-bg); color: var(--loss); }
+.res-btn.be-btn:hover,
+.res-btn.be-btn.on { border-color: var(--be); background: var(--be-bg); color: var(--be); }
+
+/* Form fields */
+.field-lbl {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt3);
+  margin-bottom: 5px;
+}
+.field-inp {
+  width: 100%;
+  padding: 9px 11px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--txt);
+  font-family: var(--font);
+  font-size: 13px;
+  margin-bottom: 14px;
+  transition: border-color .15s;
+  outline: none;
+}
+.field-inp:focus { border-color: var(--accent); }
+textarea.field-inp { resize: vertical; min-height: 72px; margin-bottom: 0; }
+
+/* Actions */
+.entry-actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  color: var(--txt2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: .15s;
+}
+.btn:hover { border-color: var(--border2); color: var(--txt); }
+.btn-primary {
+  flex: 1;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+.btn-primary:hover { opacity: .88; color: #fff; }
+.btn-danger { border-color: var(--loss); color: var(--loss); font-size: 11px; }
+.btn-danger:hover { background: var(--loss-bg); }
+
+/* ─────────────── DRAWER ─────────────── */
+.drawer-mask {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+}
+.drawer-mask.open { display: block; }
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 260px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+.drawer.open { transform: translateX(0); }
+
+.drawer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.drawer-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--txt2); font-size: 18px; line-height: 1;
+  padding: 2px 6px; border-radius: 4px;
+}
+.drawer-close:hover { color: var(--txt); }
+
+.drawer-section { padding: 14px 14px 4px; font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt3); }
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  cursor: pointer;
+  color: var(--txt2);
+  font-size: 13px;
+  border-radius: 0;
+  transition: .15s;
+}
+.drawer-item:hover { background: var(--panel2); color: var(--txt); }
+.drawer-item .ico { font-size: 15px; width: 20px; text-align: center; }
+.drawer-item.danger { color: var(--loss); }
+.drawer-item.danger:hover { background: var(--loss-bg); }
+
+/* ─────────────── MODALS ─────────────── */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+}
+.modal-bg.open { display: flex; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 26px;
+  width: 340px;
+  max-width: 94vw;
+}
+.modal-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.modal-sub { font-size: 12px; color: var(--txt2); margin-bottom: 20px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 8px; }
+
+/* Theme buttons */
+.theme-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.theme-pill {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--txt2);
+  background: none;
+  transition: .15s;
+}
+.theme-pill:hover { border-color: var(--border2); color: var(--txt); }
+.theme-pill.on { border-color: var(--accent); color: var(--accent); background: rgba(108,140,255,.07); }
+
+/* ─────────────── SCROLLBAR ─────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─────────────── RESPONSIVE ─────────────── */
+@media (max-width: 768px) {
+  .body-area { flex-direction: column; }
+  .entry-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+  .cal-cell { min-height: 42px; }
+  .cell-amt { display: none; }
+  .cal-panel { padding: 14px; }
+}
+@media (max-width: 480px) {
+  .stats-strip { padding: 0 12px; }
+  .stat-block { padding: 0 14px 0 0; margin-right: 14px; }
+  .stat-val { font-size: 14px; }
+  .topbar { padding: 0 14px; }
+}
+</style>
+</head>
+<body class="th-sombre">
+
+<div class="app">
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <div class="topbar-title">Journal de Compte</div>
+    <button class="topbar-btn" onclick="openDrawer()">
+      ☰ &nbsp;Menu Principal
+    </button>
+  </div>
+
+  <!-- ── STATS STRIP ── -->
+  <div class="stats-strip">
+    <div class="stat-block">
+      <div class="stat-lbl">Mois</div>
+      <div class="stat-val" id="s-mois">€0.00</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Année</div>
+      <div class="stat-val" id="s-annee">€0.00</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Win %</div>
+      <div class="stat-val" id="s-wr">0%</div>
+    </div>
+    <button class="details-btn" onclick="toggleDetails()" id="det-btn">
+      ▼ &nbsp;Détails
+    </button>
+  </div>
+
+  <!-- ── DETAILS PANEL ── -->
+  <div class="details-panel" id="detPanel">
+    <div class="det-cell">
+      <div class="det-lbl">P&amp;L Ce Mois</div>
+      <div class="det-val" id="d-mpnl">€0.00</div>
+      <div class="det-sub" id="d-mdays">0 jours</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Win Rate Mois</div>
+      <div class="det-val" id="d-mwr">0%</div>
+      <div class="det-sub" id="d-mwl">W:0 L:0</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Best Jour Mois</div>
+      <div class="det-val" id="d-mbest">€0.00</div>
+      <div class="det-sub" id="d-mbestd">—</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Moy./Jour Mois</div>
+      <div class="det-val" id="d-mavg">€0.00</div>
+      <div class="det-sub" id="d-mavgsub">jours tradés</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">P&amp;L Annuel</div>
+      <div class="det-val" id="d-ypnl">€0.00</div>
+      <div class="det-sub" id="d-ydays">0 jours</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Win Rate Annuel</div>
+      <div class="det-val" id="d-ywr">0%</div>
+      <div class="det-sub" id="d-ywl">W:0 L:0</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Best Mois</div>
+      <div class="det-val" id="d-bmonth">—</div>
+      <div class="det-sub" id="d-bmonthv">€0.00</div>
+    </div>
+  </div>
+
+  <!-- ── BODY ── -->
+  <div class="body-area">
+
+    <!-- CALENDRIER -->
+    <div class="cal-panel">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+        <div class="cal-month" id="calMonth">Janvier 2026</div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="day-names">
+          <div class="day-name">Lun</div>
+          <div class="day-name">Mar</div>
+          <div class="day-name">Mer</div>
+          <div class="day-name">Jeu</div>
+          <div class="day-name">Ven</div>
+          <div class="day-name">Sam</div>
+          <div class="day-name">Dim</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- SAISIE -->
+    <div class="entry-panel">
+      <div class="entry-head" id="entryHead">LUNDI 1 JANVIER</div>
+      <div class="entry-body">
+        <div class="res-placeholder">Résultat — choisis d'abord</div>
+        <div class="res-row">
+          <button class="res-btn win-btn"  onclick="setResult('win')">✓ WIN</button>
+          <button class="res-btn loss-btn" onclick="setResult('loss')">✗ LOSS</button>
+          <button class="res-btn be-btn"   onclick="setResult('be')">— BE</button>
+        </div>
+        <label class="field-lbl">Montant gagné (€)</label>
+        <input  class="field-inp" type="number" id="fAmt" placeholder="+€" step="0.01">
+        <label class="field-lbl">Symboles (ex: BTC, CAC40)</label>
+        <input  class="field-inp" type="text" id="fSym" placeholder="BTC, EUR/USD…">
+        <label class="field-lbl">Notes</label>
+        <textarea class="field-inp" id="fNotes" placeholder="Observations, stratégie…"></textarea>
+        <div class="entry-actions">
+          <button class="btn btn-primary" onclick="saveDay()">✓ SAUVEGARDER</button>
+          <button class="btn btn-danger"  onclick="deleteDay()">Supprimer cette journée</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body-area -->
+</div><!-- /app -->
+
+<!-- ── DRAWER ── -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-top">
+    <span>Menu Principal</span>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-section">Navigation</div>
+  <div class="drawer-item" onclick="closeDrawer()">
+    <span class="ico">📅</span> Calendrier
+  </div>
+  <div class="drawer-section">Outils</div>
+  <div class="drawer-item" onclick="closeDrawer(); openTheme()">
+    <span class="ico">🎨</span> Paramètres &amp; Thème
+  </div>
+  <div class="drawer-section">Données</div>
+  <div class="drawer-item" onclick="closeDrawer(); exportData()">
+    <span class="ico">📤</span> Exporter mes données
+  </div>
+  <div class="drawer-item danger" onclick="closeDrawer(); openClear()">
+    <span class="ico">🗑️</span> Effacer toutes les données
+  </div>
+</div>
+
+<!-- ── MODAL THÈME ── -->
+<div class="modal-bg" id="themeModal">
+  <div class="modal">
+    <div class="modal-title">Paramètres</div>
+    <div class="modal-sub">Thème de l'application</div>
+    <div class="theme-btns" id="themeBtns">
+      <button class="theme-pill on" data-t="sombre" onclick="applyTheme('sombre',this)">Sombre</button>
+      <button class="theme-pill"    data-t="bleu"   onclick="applyTheme('bleu',this)">Bleu</button>
+      <button class="theme-pill"    data-t="violet" onclick="applyTheme('violet',this)">Violet</button>
+      <button class="theme-pill"    data-t="clair"  onclick="applyTheme('clair',this)">Clair</button>
+      <button class="theme-pill"    data-t="orange" onclick="applyTheme('orange',this)">Orange</button>
+    </div>
+    <div class="modal-btns" style="margin-top:18px; justify-content:flex-end">
+      <button class="btn" onclick="closeTheme()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EFFACER ── -->
+<div class="modal-bg" id="clearModal">
+  <div class="modal">
+    <div class="modal-title">⚠️ Effacer toutes les données ?</div>
+    <div class="modal-sub">Cette action est irréversible. Toutes vos journées enregistrées seront définitivement supprimées.</div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" style="flex:1" onclick="clearAll()">Confirmer</button>
+      <button class="btn"            style="flex:1" onclick="closeClear()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONSTANTES
+═══════════════════════════════════════════ */
+const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin',
+              'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JOURS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+
+/* ═══════════════════════════════════════════
+   ÉTAT
+═══════════════════════════════════════════ */
+const now   = new Date();
+let viewY   = now.getFullYear();
+let viewM   = now.getMonth();
+let selDay  = 1;   // jour sélectionné (1 par défaut)
+let selRes  = null;
+
+/* ═══════════════════════════════════════════
+   DONNÉES (localStorage)
+═══════════════════════════════════════════ */
+function getData() { return JSON.parse(localStorage.getItem('tradelog') || '{}'); }
+function putData(d) { localStorage.setItem('tradelog', JSON.stringify(d)); }
+function key(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+/* ═══════════════════════════════════════════
+   THÈME
+═══════════════════════════════════════════ */
+function applyTheme(t, btn) {
+  document.body.className = `th-${t}`;
+  localStorage.setItem('tradelog_theme', t);
+  document.querySelectorAll('.theme-pill').forEach(p => p.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  else {
+    const b = document.querySelector(`.theme-pill[data-t="${t}"]`);
+    if (b) b.classList.add('on');
+  }
+}
+// Init thème
+(function() {
+  const t = localStorage.getItem('tradelog_theme') || 'sombre';
+  applyTheme(t, null);
+})();
+
+/* ═══════════════════════════════════════════
+   DRAWER
+═══════════════════════════════════════════ */
+function openDrawer()  { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerMask').classList.add('open'); }
+function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerMask').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════ */
+function openTheme()  { document.getElementById('themeModal').classList.add('open'); }
+function closeTheme() { document.getElementById('themeModal').classList.remove('open'); }
+function openClear()  { document.getElementById('clearModal').classList.add('open'); }
+function closeClear() { document.getElementById('clearModal').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════ */
+function fmtVal(v) {
+  const abs = Math.abs(v).toFixed(2).replace('.', ',');
+  return (v >= 0 ? '+' : '-') + '€' + abs;
+}
+function colorOf(v) {
+  return v > 0 ? 'var(--win)' : v < 0 ? 'var(--loss)' : '';
+}
+function setEl(id, txt, color) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = txt;
+  if (color !== undefined) e.style.color = color || '';
+}
+
+function computeStats() {
+  const data = getData();
+
+  /* — mois courant — */
+  let mp = 0, mw = 0, ml = 0, mdays = 0;
+  let mbest = -Infinity, mbestD = null;
+  const dInM = new Date(viewY, viewM + 1, 0).getDate();
+  for (let d = 1; d <= dInM; d++) {
+    const e = data[key(viewY, viewM, d)];
+    if (!e) continue;
+    const a = parseFloat(e.amount) || 0;
+    mdays++;
+    if (e.result === 'win')       { mp += a; mw++; if (a > mbest) { mbest = a; mbestD = d; } }
+    else if (e.result === 'loss') { mp -= Math.abs(a); ml++; }
+    else                          { mw++; /* BE = win rate */ }
+  }
+  const mwr  = (mw + ml) > 0 ? Math.round(mw / (mw + ml) * 100) : 0;
+  const mavg = mdays > 0 ? mp / mdays : 0;
+
+  /* — année — */
+  let yp = 0, yw = 0, yl = 0, ydays = 0;
+  let byv = -Infinity, bym = -1;
+  for (let m = 0; m < 12; m++) {
+    let mv = 0;
+    const dInY = new Date(viewY, m + 1, 0).getDate();
+    for (let d = 1; d <= dInY; d++) {
+      const e = data[key(viewY, m, d)];
+      if (!e) continue;
+      const a = parseFloat(e.amount) || 0;
+      ydays++;
+      if (e.result === 'win')       { yp += a; yw++; mv += a; }
+      else if (e.result === 'loss') { yp -= Math.abs(a); yl++; mv -= Math.abs(a); }
+      else                          { yw++; }
+    }
+    if (mv > byv) { byv = mv; bym = m; }
+  }
+  const ywr = (yw + yl) > 0 ? Math.round(yw / (yw + yl) * 100) : 0;
+
+  /* — mise à jour DOM — */
+  setEl('s-mois',  fmtVal(mp), colorOf(mp));
+  setEl('s-annee', fmtVal(yp), colorOf(yp));
+  setEl('s-wr',    mwr + '%');
+
+  setEl('d-mpnl',    fmtVal(mp), colorOf(mp));
+  setEl('d-mdays',   mdays + ' jours');
+  setEl('d-mwr',     mwr + '%');
+  setEl('d-mwl',     'W:' + mw + ' L:' + ml);
+  setEl('d-mbest',   mbest === -Infinity ? '€0,00' : fmtVal(mbest));
+  setEl('d-mbestd',  mbestD ? JOURS[((new Date(viewY,viewM,mbestD).getDay()+6)%7)].slice(0,3)+' '+mbestD : '—');
+  setEl('d-mavg',    fmtVal(mavg), colorOf(mavg));
+  setEl('d-mavgsub', mdays + ' jours tradés');
+  setEl('d-ypnl',    fmtVal(yp), colorOf(yp));
+  setEl('d-ydays',   ydays + ' jours');
+  setEl('d-ywr',     ywr + '%');
+  setEl('d-ywl',     'W:' + yw + ' L:' + yl);
+  setEl('d-bmonth',  bym >= 0 && byv > -Infinity ? MOIS[bym] : '—');
+  setEl('d-bmonthv', bym >= 0 && byv > -Infinity ? fmtVal(byv) : '€0,00');
+}
+
+/* ═══════════════════════════════════════════
+   CALENDRIER
+═══════════════════════════════════════════ */
+function renderCalendar() {
+  const data = getData();
+  document.getElementById('calMonth').textContent = MOIS[viewM] + ' ' + viewY;
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  const firstDow = (new Date(viewY, viewM, 1).getDay() + 6) % 7; // lun=0
+  const daysInMonth = new Date(viewY, viewM + 1, 0).getDate();
+
+  // cellules vides
+  for (let i = 0; i < firstDow; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const entry   = data[key(viewY, viewM, d)];
+    const isToday = now.getFullYear() === viewY && now.getMonth() === viewM && now.getDate() === d;
+    const isSel   = selDay === d;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell'
+      + (entry  ? ' ' + entry.result : '')
+      + (isToday ? ' today' : '')
+      + (isSel  ? ' active' : '');
+    cell.onclick = () => selectDay(d);
+
+    // numéro
+    const num = document.createElement('div');
+    num.className = 'cell-num';
+    num.textContent = d;
+    cell.appendChild(num);
+
+    // montant
+    if (entry && entry.amount) {
+      const amt = document.createElement('div');
+      amt.className = 'cell-amt';
+      const v = parseFloat(entry.amount) || 0;
+      amt.textContent = (entry.result === 'loss' ? '-' : '+') + Math.abs(v).toFixed(0) + '€';
+      cell.appendChild(amt);
+    }
+
+    // dot
+    if (entry) {
+      const dot = document.createElement('div');
+      dot.className = 'cell-dot';
+      cell.appendChild(dot);
+    }
+
+    grid.appendChild(cell);
+  }
+
+  computeStats();
+}
+
+function changeMonth(dir) {
+  viewM += dir;
+  if (viewM < 0)  { viewM = 11; viewY--; }
+  if (viewM > 11) { viewM = 0;  viewY++; }
+  selDay = 1; selRes = null;
+  renderCalendar();
+  loadDayForm(selDay);
+}
+
+/* ═══════════════════════════════════════════
+   SAISIE JOURNÉE
+═══════════════════════════════════════════ */
+function selectDay(d) {
+  selDay = d;
+  selRes = null;
+  renderCalendar();
+  loadDayForm(d);
+}
+
+function loadDayForm(d) {
+  // Titre
+  const dow  = (new Date(viewY, viewM, d).getDay() + 6) % 7;
+  const head = JOURS[dow].toUpperCase() + ' ' + d + ' ' + MOIS[viewM].toUpperCase();
+  document.getElementById('entryHead').textContent = head;
+
+  // Charger données existantes
+  const entry = getData()[key(viewY, viewM, d)] || {};
+
+  // Boutons résultat
+  document.querySelectorAll('.res-btn').forEach(b => b.classList.remove('on'));
+  if (entry.result) {
+    selRes = entry.result;
+    document.querySelector('.res-btn.' + entry.result + '-btn').classList.add('on');
+  }
+
+  document.getElementById('fAmt').value    = entry.amount  || '';
+  document.getElementById('fSym').value    = entry.symbols || '';
+  document.getElementById('fNotes').value  = entry.notes   || '';
+}
+
+function setResult(r) {
+  selRes = r;
+  document.querySelectorAll('.res-btn').forEach(b => b.classList.remove('on'));
+  document.querySelector('.res-btn.' + r + '-btn').classList.add('on');
+}
+
+function saveDay() {
+  if (!selDay) return alert('Sélectionne un jour.');
+  if (!selRes) return alert('Choisis d\'abord un résultat : WIN, LOSS ou BE.');
+  const data = getData();
+  data[key(viewY, viewM, selDay)] = {
+    result:  selRes,
+    amount:  document.getElementById('fAmt').value,
+    symbols: document.getElementById('fSym').value,
+    notes:   document.getElementById('fNotes').value,
+    savedAt: new Date().toISOString()
+  };
+  putData(data);
+  renderCalendar();
+}
+
+function deleteDay() {
+  if (!selDay) return;
+  const data = getData();
+  delete data[key(viewY, viewM, selDay)];
+  putData(data);
+  selRes = null;
+  renderCalendar();
+  loadDayForm(selDay);
+}
+
+/* ═══════════════════════════════════════════
+   DÉTAILS TOGGLE
+═══════════════════════════════════════════ */
+let detOpen = false;
+function toggleDetails() {
+  detOpen = !detOpen;
+  document.getElementById('detPanel').classList.toggle('open', detOpen);
+  document.getElementById('det-btn').innerHTML = (detOpen ? '▲' : '▼') + ' &nbsp;Détails';
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════ */
+function exportData() {
+  const json = JSON.stringify(getData(), null, 2);
+  const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'tradelog_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ═══════════════════════════════════════════
+   EFFACER
+═══════════════════════════════════════════ */
+function clearAll() {
+  localStorage.removeItem('tradelog');
+  closeClear();
+  selDay = 1; selRes = null;
+  renderCalendar();
+  loadDayForm(1);
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+renderCalendar();
+loadDayForm(selDay);
+</script>
+</body>
+</html>
