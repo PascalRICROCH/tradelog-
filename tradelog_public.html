@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal de Trading – Pascal Ricroch</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0f1117; --panel:#171b26; --panel2:#1e2333; --panel3:#252c40;
+  --border:#2a3150; --border2:#384070; --accent:#6c8cff;
+  --win:#22c55e; --win-bg:rgba(34,197,94,0.09); --win-brd:rgba(34,197,94,0.30);
+  --loss:#ef4444; --loss-bg:rgba(239,68,68,0.09); --loss-brd:rgba(239,68,68,0.30);
+  --be:#f59e0b; --be-bg:rgba(245,158,11,0.09); --be-brd:rgba(245,158,11,0.30);
+  --txt:#e2e8f8; --txt2:#7a8aaa; --txt3:#3d4a68;
+  --font:'Inter', system-ui, sans-serif;
+}
+body { font-family:var(--font); background:var(--bg); color:var(--txt); font-size:13px; line-height:1.4; overflow-x:hidden; }
+.app { display:flex; flex-direction:column; min-height:100vh; }
+
+/* READONLY BANNER */
+.ro-banner {
+  background: linear-gradient(90deg, rgba(108,140,255,0.15), rgba(108,140,255,0.05));
+  border-bottom: 1px solid rgba(108,140,255,0.3);
+  padding: 7px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: .04em;
+}
+.ro-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+/* TOPBAR */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:52px; background:var(--panel); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; flex-shrink:0; }
+.topbar-title { font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt); }
+.topbar-author { font-size:11px; color:var(--txt2); }
+
+/* STATS STRIP */
+.stats-strip { display:flex; align-items:center; gap:0; padding:0 20px; height:46px; background:var(--panel); border-bottom:1px solid var(--border); flex-shrink:0; }
+.stat-block { display:flex; flex-direction:column; justify-content:center; padding:0 22px 0 0; margin-right:22px; border-right:1px solid var(--border); min-width:80px; }
+.stat-block:last-of-type { border-right:none; }
+.stat-lbl { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--txt3); }
+.stat-val { font-size:15px; font-weight:700; color:var(--txt); margin-top:1px; }
+.details-btn { margin-left:auto; display:flex; align-items:center; gap:5px; background:none; border:none; color:var(--txt3); font-family:var(--font); font-size:11px; cursor:pointer; padding:5px 8px; border-radius:6px; transition:.15s; white-space:nowrap; }
+.details-btn:hover { color:var(--txt2); }
+
+/* DETAILS PANEL */
+.details-panel { display:none; background:var(--panel2); border-bottom:1px solid var(--border); }
+.details-panel.open { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); }
+.det-cell { padding:13px 18px; border-right:1px solid var(--border); }
+.det-cell:last-child { border-right:none; }
+.det-lbl { font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--txt3); margin-bottom:3px; }
+.det-val { font-size:15px; font-weight:700; }
+.det-sub { font-size:11px; color:var(--txt3); margin-top:1px; }
+
+/* BODY */
+.body-area { display:flex; flex:1; overflow:hidden; }
+
+/* CALENDAR */
+.cal-panel { flex:1; padding:22px; overflow-y:auto; min-width:0; }
+.cal-nav { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.cal-nav-btn { width:28px; height:28px; border-radius:6px; border:1px solid var(--border); background:none; color:var(--txt2); font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.15s; }
+.cal-nav-btn:hover { border-color:var(--accent); color:var(--accent); }
+.cal-month { font-size:15px; font-weight:700; letter-spacing:.02em; }
+.day-names { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px; }
+.day-name { text-align:center; font-size:9px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--txt3); padding:2px 0 5px; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-cell { border-radius:8px; border:1px solid var(--border); background:var(--panel); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:7px 2px 5px; min-height:58px; transition:border-color .15s, transform .1s; position:relative; }
+.cal-cell:hover { border-color:var(--border2); transform:scale(1.04); z-index:2; }
+.cal-cell.empty { background:transparent; border-color:transparent; cursor:default; pointer-events:none; }
+.cal-cell.win  { background:var(--win-bg);  border-color:var(--win-brd); }
+.cal-cell.loss { background:var(--loss-bg); border-color:var(--loss-brd); }
+.cal-cell.be   { background:var(--be-bg);   border-color:var(--be-brd); }
+.cal-cell.active { border-color:var(--accent) !important; box-shadow:0 0 0 2px rgba(108,140,255,.2); }
+.cal-cell.today .cell-num { color:var(--accent); font-weight:700; }
+.cell-num { font-size:13px; font-weight:500; line-height:1; }
+.cell-amt { font-size:10px; font-weight:500; margin-top:4px; }
+.cal-cell.win  .cell-amt { color:var(--win); }
+.cal-cell.loss .cell-amt { color:var(--loss); }
+.cal-cell.be   .cell-amt { color:var(--be); }
+.cell-dot { width:4px; height:4px; border-radius:50%; margin-top:4px; }
+.cal-cell.win  .cell-dot { background:var(--win); }
+.cal-cell.loss .cell-dot { background:var(--loss); }
+.cal-cell.be   .cell-dot { background:var(--be); }
+
+/* DAY VIEW PANEL (lecture seule) */
+.entry-panel { width:300px; flex-shrink:0; border-left:1px solid var(--border); background:var(--panel); display:flex; flex-direction:column; overflow-y:auto; }
+.entry-head { padding:16px 18px 14px; border-bottom:1px solid var(--border); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--txt2); }
+.entry-body { padding:18px; flex:1; }
+
+.day-empty { font-size:12px; color:var(--txt3); font-style:italic; margin-top:8px; }
+
+.day-result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: .06em;
+}
+.day-result-badge.win  { background:var(--win-bg);  border:1px solid var(--win-brd);  color:var(--win); }
+.day-result-badge.loss { background:var(--loss-bg); border:1px solid var(--loss-brd); color:var(--loss); }
+.day-result-badge.be   { background:var(--be-bg);   border:1px solid var(--be-brd);   color:var(--be); }
+
+.day-amount { font-size:28px; font-weight:700; margin-bottom:4px; }
+.day-amount.win  { color:var(--win); }
+.day-amount.loss { color:var(--loss); }
+.day-amount.be   { color:var(--be); }
+
+.day-field { margin-top:14px; }
+.day-field-lbl { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--txt3); margin-bottom:4px; }
+.day-field-val { font-size:13px; color:var(--txt); background:var(--panel2); border:1px solid var(--border); border-radius:7px; padding:9px 11px; line-height:1.5; }
+.day-field-val.empty-val { color:var(--txt3); font-style:italic; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* RESPONSIVE */
+@media (max-width:768px) {
+  .body-area { flex-direction:column; }
+  .entry-panel { width:100%; border-left:none; border-top:1px solid var(--border); }
+  .cal-cell { min-height:42px; }
+  .cell-amt { display:none; }
+  .cal-panel { padding:14px; }
+}
+@media (max-width:480px) {
+  .stats-strip { padding:0 12px; }
+  .stat-block { padding:0 14px 0 0; margin-right:14px; }
+  .stat-val { font-size:14px; }
+  .topbar { padding:0 14px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- READONLY BANNER -->
+  <div class="ro-banner">
+    <div class="ro-dot"></div>
+    Vue partagée — Lecture seule &nbsp;·&nbsp; Données au 4 juillet 2026
+  </div>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">Journal de Trading</div>
+    <div class="topbar-author">Pascal Ricroch</div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="stats-strip">
+    <div class="stat-block">
+      <div class="stat-lbl">Mois</div>
+      <div class="stat-val" id="s-mois">€0.00</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Année</div>
+      <div class="stat-val" id="s-annee">€0.00</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Win %</div>
+      <div class="stat-val" id="s-wr">0%</div>
+    </div>
+    <button class="details-btn" onclick="toggleDetails()" id="det-btn">▼ &nbsp;Détails</button>
+  </div>
+
+  <!-- DETAILS PANEL -->
+  <div class="details-panel" id="detPanel">
+    <div class="det-cell">
+      <div class="det-lbl">P&amp;L Ce Mois</div>
+      <div class="det-val" id="d-mpnl">€0.00</div>
+      <div class="det-sub" id="d-mdays">0 jours</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Win Rate Mois</div>
+      <div class="det-val" id="d-mwr">0%</div>
+      <div class="det-sub" id="d-mwl">W:0 L:0</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Best Jour Mois</div>
+      <div class="det-val" id="d-mbest">€0.00</div>
+      <div class="det-sub" id="d-mbestd">—</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Moy./Jour Mois</div>
+      <div class="det-val" id="d-mavg">€0.00</div>
+      <div class="det-sub" id="d-mavgsub">jours tradés</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">P&amp;L Annuel</div>
+      <div class="det-val" id="d-ypnl">€0.00</div>
+      <div class="det-sub" id="d-ydays">0 jours</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Win Rate Annuel</div>
+      <div class="det-val" id="d-ywr">0%</div>
+      <div class="det-sub" id="d-ywl">W:0 L:0</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Best Mois</div>
+      <div class="det-val" id="d-bmonth">—</div>
+      <div class="det-sub" id="d-bmonthv">€0.00</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body-area">
+
+    <!-- CALENDRIER -->
+    <div class="cal-panel">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+        <div class="cal-month" id="calMonth">Juillet 2026</div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="day-names">
+          <div class="day-name">Lun</div><div class="day-name">Mar</div>
+          <div class="day-name">Mer</div><div class="day-name">Jeu</div>
+          <div class="day-name">Ven</div><div class="day-name">Sam</div>
+          <div class="day-name">Dim</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- VUE JOUR (lecture seule) -->
+    <div class="entry-panel">
+      <div class="entry-head" id="entryHead">— Sélectionne un jour</div>
+      <div class="entry-body" id="entryBody">
+        <div class="day-empty">Clique sur un jour pour voir le détail.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══ DONNÉES EMBARQUÉES ═══ */
+const TRADE_DATA = {
+  "2026-05-04": {"result":"win","amount":"2051.72","symbols":"XAUUSD","notes":"sortie trop tot"},
+  "2026-04-30": {"result":"win","amount":"215.80","symbols":"XAUSD","notes":""},
+  "2026-04-27": {"result":"win","amount":"296","symbols":"XAUSD","notes":""},
+  "2026-05-05": {"result":"win","amount":"881.51","symbols":"XAUSD","notes":"trade à la hausse sur imbalance MAIS LAGEMENT SORTI TROP TOT - 4 trades"},
+  "2026-05-06": {"result":"loss","amount":"3993","symbols":"XAUUSD","notes":"3 SL consécutifs à 800 de risque"},
+  "2026-05-07": {"result":"win","amount":"603.42","symbols":"XAUUSD","notes":"big trade au rebond du Gold - 1 trade de 3300 usd qui sauve la journée"},
+  "2026-05-12": {"result":"loss","amount":"1098","symbols":"XAUSD","notes":"3 trades pris à contre tendance"},
+  "2026-05-13": {"result":"win","amount":"976","symbols":"xauusd, GER40","notes":""},
+  "2026-05-14": {"result":"win","amount":"2045","symbols":"","notes":""},
+  "2026-05-15": {"result":"loss","amount":"5626","symbols":"","notes":""},
+  "2026-05-18": {"result":"loss","amount":"4665","symbols":"","notes":""},
+  "2026-04-02": {"result":"win","amount":"722","symbols":"","notes":""},
+  "2026-04-07": {"result":"loss","amount":"2064","symbols":"","notes":""},
+  "2026-04-08": {"result":"win","amount":"405","symbols":"","notes":""},
+  "2026-04-13": {"result":"loss","amount":"486","symbols":"","notes":""},
+  "2026-04-14": {"result":"win","amount":"1463","symbols":"","notes":""},
+  "2026-04-15": {"result":"win","amount":"644","symbols":"","notes":""},
+  "2026-04-16": {"result":"win","amount":"623","symbols":"","notes":""},
+  "2026-04-21": {"result":"loss","amount":"8800","symbols":"","notes":""},
+  "2026-04-29": {"result":"win","amount":"22","symbols":"","notes":""},
+  "2026-03-03": {"result":"win","amount":"150.52","symbols":"","notes":""},
+  "2026-03-04": {"result":"win","amount":"631.70","symbols":"","notes":""},
+  "2026-03-05": {"result":"loss","amount":"1046","symbols":"","notes":""},
+  "2026-03-06": {"result":"loss","amount":"960","symbols":"","notes":""},
+  "2026-03-09": {"result":"win","amount":"130.20","symbols":"","notes":""},
+  "2026-03-10": {"result":"win","amount":"761","symbols":"","notes":""},
+  "2026-03-11": {"result":"win","amount":"288.97","symbols":"","notes":""},
+  "2026-03-12": {"result":"win","amount":"130","symbols":"","notes":""},
+  "2026-03-13": {"result":"win","amount":"286.38","symbols":"","notes":""},
+  "2026-03-16": {"result":"loss","amount":"1525","symbols":"","notes":""},
+  "2026-03-17": {"result":"loss","amount":"4831","symbols":"","notes":""},
+  "2026-03-18": {"result":"loss","amount":"446","symbols":"","notes":""},
+  "2026-03-19": {"result":"loss","amount":"1672","symbols":"","notes":""},
+  "2026-03-20": {"result":"loss","amount":"2360","symbols":"","notes":""},
+  "2026-03-23": {"result":"win","amount":"3219.83","symbols":"","notes":""},
+  "2026-03-24": {"result":"loss","amount":"6313","symbols":"","notes":""},
+  "2026-03-25": {"result":"loss","amount":"1899","symbols":"","notes":""},
+  "2026-02-10": {"result":"loss","amount":"34.55","symbols":"","notes":""},
+  "2026-02-11": {"result":"win","amount":"129.41","symbols":"","notes":""},
+  "2026-02-12": {"result":"win","amount":"271.65","symbols":"","notes":""},
+  "2026-02-13": {"result":"win","amount":"603","symbols":"","notes":""},
+  "2026-02-17": {"result":"win","amount":"1826","symbols":"","notes":""},
+  "2026-02-18": {"result":"loss","amount":"2368","symbols":"","notes":""},
+  "2026-02-19": {"result":"loss","amount":"3008.78","symbols":"","notes":""},
+  "2026-02-20": {"result":"loss","amount":"247","symbols":"","notes":""},
+  "2026-02-23": {"result":"loss","amount":"2415","symbols":"","notes":""},
+  "2026-02-24": {"result":"loss","amount":"1213.83","symbols":"","notes":""},
+  "2026-02-25": {"result":"win","amount":"216.80","symbols":"","notes":""},
+  "2026-02-26": {"result":"win","amount":"40.40","symbols":"","notes":""},
+  "2026-02-27": {"result":"loss","amount":"3085.24","symbols":"","notes":""},
+  "2026-05-19": {"result":"win","amount":"151.21","symbols":"","notes":""},
+  "2026-05-20": {"result":"loss","amount":"5658","symbols":"","notes":""},
+  "2025-10-17": {"result":"loss","amount":"1715","symbols":"","notes":""},
+  "2025-11-28": {"result":"loss","amount":"1179","symbols":"","notes":""},
+  "2025-12-23": {"result":"loss","amount":"1612","symbols":"","notes":""},
+  "2026-01-29": {"result":"loss","amount":"9812","symbols":"","notes":""},
+  "2026-05-21": {"result":"win","amount":"154.5","symbols":"","notes":""},
+  "2026-05-22": {"result":"win","amount":"76","symbols":"","notes":""},
+  "2026-05-26": {"result":"win","amount":"149","symbols":"","notes":""},
+  "2026-05-27": {"result":"win","amount":"150.97","symbols":"","notes":""},
+  "2026-05-28": {"result":"win","amount":"198.90","symbols":"","notes":""},
+  "2026-05-29": {"result":"loss","amount":"2170","symbols":"","notes":""},
+  "2026-06-02": {"result":"win","amount":"201","symbols":"","notes":""},
+  "2026-06-03": {"result":"win","amount":"181","symbols":"XAUUSD","notes":""},
+  "2026-06-04": {"result":"loss","amount":"7736","symbols":"","notes":""},
+  "2026-06-05": {"result":"loss","amount":"368","symbols":"","notes":""},
+  "2026-06-09": {"result":"win","amount":"1646","symbols":"","notes":""},
+  "2026-06-10": {"result":"loss","amount":"3057","symbols":"","notes":""},
+  "2026-06-11": {"result":"loss","amount":"5995","symbols":"","notes":""},
+  "2026-06-15": {"result":"loss","amount":"39.50","symbols":"","notes":""},
+  "2026-06-12": {"result":"win","amount":"254","symbols":"","notes":""},
+  "2026-06-19": {"result":"loss","amount":"2631","symbols":"DAX","notes":""},
+  "2026-06-22": {"result":"win","amount":"78.66","symbols":"","notes":""},
+  "2026-06-23": {"result":"win","amount":"2140","symbols":"","notes":""},
+  "2026-07-01": {"result":"win","amount":"4405.5","symbols":"","notes":""},
+  "2026-07-02": {"result":"win","amount":"104.25","symbols":"","notes":""}
+};
+
+/* ═══ CONSTANTES ═══ */
+const MOIS  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JOURS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+
+/* ═══ ÉTAT ═══ */
+const now = new Date();
+let viewY = now.getFullYear();
+let viewM = now.getMonth();
+let selDay = null;
+
+function key(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+/* ═══ STATS ═══ */
+function fmtVal(v) {
+  const abs = Math.abs(v).toFixed(2).replace('.', ',');
+  return (v >= 0 ? '+' : '-') + '€' + abs;
+}
+function colorOf(v) { return v > 0 ? 'var(--win)' : v < 0 ? 'var(--loss)' : ''; }
+function setEl(id, txt, color) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = txt;
+  if (color !== undefined) e.style.color = color || '';
+}
+
+function computeStats() {
+  let mp=0, mw=0, ml=0, mdays=0, mbest=-Infinity, mbestD=null;
+  const dInM = new Date(viewY, viewM+1, 0).getDate();
+  for (let d=1; d<=dInM; d++) {
+    const e = TRADE_DATA[key(viewY, viewM, d)];
+    if (!e) continue;
+    const a = parseFloat(e.amount)||0;
+    mdays++;
+    if (e.result==='win')       { mp+=a; mw++; if(a>mbest){mbest=a;mbestD=d;} }
+    else if (e.result==='loss') { mp-=Math.abs(a); ml++; }
+    else                        { mw++; }
+  }
+  const mwr  = (mw+ml)>0 ? Math.round(mw/(mw+ml)*100) : 0;
+  const mavg = mdays>0 ? mp/mdays : 0;
+
+  let yp=0, yw=0, yl=0, ydays=0, byv=-Infinity, bym=-1;
+  for (let m=0; m<12; m++) {
+    let mv=0;
+    const dInY = new Date(viewY, m+1, 0).getDate();
+    for (let d=1; d<=dInY; d++) {
+      const e = TRADE_DATA[key(viewY, m, d)];
+      if (!e) continue;
+      const a = parseFloat(e.amount)||0;
+      ydays++;
+      if (e.result==='win')       { yp+=a; yw++; mv+=a; }
+      else if (e.result==='loss') { yp-=Math.abs(a); yl++; mv-=Math.abs(a); }
+      else                        { yw++; }
+    }
+    if (mv>byv) { byv=mv; bym=m; }
+  }
+  const ywr = (yw+yl)>0 ? Math.round(yw/(yw+yl)*100) : 0;
+
+  setEl('s-mois',  fmtVal(mp), colorOf(mp));
+  setEl('s-annee', fmtVal(yp), colorOf(yp));
+  setEl('s-wr',    mwr+'%');
+  setEl('d-mpnl',    fmtVal(mp), colorOf(mp));
+  setEl('d-mdays',   mdays+' jours');
+  setEl('d-mwr',     mwr+'%');
+  setEl('d-mwl',     'W:'+mw+' L:'+ml);
+  setEl('d-mbest',   mbest===-Infinity ? '—' : fmtVal(mbest));
+  setEl('d-mbestd',  mbestD ? JOURS[((new Date(viewY,viewM,mbestD).getDay()+6)%7)].slice(0,3)+' '+mbestD : '—');
+  setEl('d-mavg',    fmtVal(mavg), colorOf(mavg));
+  setEl('d-mavgsub', mdays+' jours tradés');
+  setEl('d-ypnl',    fmtVal(yp), colorOf(yp));
+  setEl('d-ydays',   ydays+' jours');
+  setEl('d-ywr',     ywr+'%');
+  setEl('d-ywl',     'W:'+yw+' L:'+yl);
+  setEl('d-bmonth',  bym>=0&&byv>-Infinity ? MOIS[bym] : '—');
+  setEl('d-bmonthv', bym>=0&&byv>-Infinity ? fmtVal(byv) : '€0,00');
+}
+
+/* ═══ CALENDRIER ═══ */
+function renderCalendar() {
+  document.getElementById('calMonth').textContent = MOIS[viewM] + ' ' + viewY;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const firstDow = (new Date(viewY, viewM, 1).getDay()+6)%7;
+  const dInM = new Date(viewY, viewM+1, 0).getDate();
+
+  for (let i=0; i<firstDow; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+
+  for (let d=1; d<=dInM; d++) {
+    const entry   = TRADE_DATA[key(viewY, viewM, d)];
+    const isToday = now.getFullYear()===viewY && now.getMonth()===viewM && now.getDate()===d;
+    const isSel   = selDay===d;
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell'
+      + (entry ? ' '+entry.result : '')
+      + (isToday ? ' today' : '')
+      + (isSel ? ' active' : '');
+    cell.onclick = () => selectDay(d);
+
+    const num = document.createElement('div');
+    num.className = 'cell-num';
+    num.textContent = d;
+    cell.appendChild(num);
+
+    if (entry && entry.amount) {
+      const amt = document.createElement('div');
+      amt.className = 'cell-amt';
+      const v = parseFloat(entry.amount)||0;
+      amt.textContent = (entry.result==='loss' ? '-' : '+') + Math.abs(v).toFixed(0) + '€';
+      cell.appendChild(amt);
+    }
+    if (entry) {
+      const dot = document.createElement('div');
+      dot.className = 'cell-dot';
+      cell.appendChild(dot);
+    }
+    grid.appendChild(cell);
+  }
+  computeStats();
+}
+
+function changeMonth(dir) {
+  viewM += dir;
+  if (viewM<0)  { viewM=11; viewY--; }
+  if (viewM>11) { viewM=0;  viewY++; }
+  selDay = null;
+  renderCalendar();
+  showDayEmpty();
+}
+
+/* ═══ DÉTAIL JOUR ═══ */
+function selectDay(d) {
+  selDay = d;
+  renderCalendar();
+  showDayDetail(d);
+}
+
+function showDayEmpty() {
+  const dow = (new Date(viewY, viewM, 1).getDay()+6)%7;
+  document.getElementById('entryHead').textContent = '— Sélectionne un jour';
+  document.getElementById('entryBody').innerHTML = '<div class="day-empty">Clique sur un jour pour voir le détail.</div>';
+}
+
+function showDayDetail(d) {
+  const dow  = (new Date(viewY, viewM, d).getDay()+6)%7;
+  const head = JOURS[dow].toUpperCase() + ' ' + d + ' ' + MOIS[viewM].toUpperCase();
+  document.getElementById('entryHead').textContent = head;
+
+  const entry = TRADE_DATA[key(viewY, viewM, d)];
+  const body  = document.getElementById('entryBody');
+
+  if (!entry) {
+    body.innerHTML = '<div class="day-empty" style="margin-top:8px">Pas de trade ce jour-là.</div>';
+    return;
+  }
+
+  const v = parseFloat(entry.amount)||0;
+  const sign = entry.result === 'loss' ? '-' : '+';
+  const resultLabel = entry.result === 'win' ? '✓ WIN' : entry.result === 'loss' ? '✗ LOSS' : '— BE';
+
+  let html = `<div class="day-result-badge ${entry.result}">${resultLabel}</div>`;
+  html += `<div class="day-amount ${entry.result}">${sign}€${Math.abs(v).toFixed(2).replace('.',',')}</div>`;
+
+  if (entry.symbols) {
+    html += `<div class="day-field">
+      <div class="day-field-lbl">Instruments</div>
+      <div class="day-field-val">${escHtml(entry.symbols)}</div>
+    </div>`;
+  }
+  if (entry.notes) {
+    html += `<div class="day-field">
+      <div class="day-field-lbl">Notes</div>
+      <div class="day-field-val">${escHtml(entry.notes).replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }
+  if (!entry.symbols && !entry.notes) {
+    html += `<div class="day-field"><div class="day-field-val empty-val">Aucune note.</div></div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══ DÉTAILS TOGGLE ═══ */
+let detOpen = false;
+function toggleDetails() {
+  detOpen = !detOpen;
+  document.getElementById('detPanel').classList.toggle('open', detOpen);
+  document.getElementById('det-btn').innerHTML = (detOpen?'▲':'▼') + ' &nbsp;Détails';
+}
+
+/* ═══ INIT ═══ */
+renderCalendar();
+</script>
+</body>
+</html>
