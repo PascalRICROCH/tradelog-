@@ -450,6 +450,41 @@ textarea.field-inp { resize: vertical; min-height: 72px; margin-bottom: 0; }
 .theme-pill:hover { border-color: var(--border2); color: var(--txt); }
 .theme-pill.on { border-color: var(--accent); color: var(--accent); background: rgba(108,140,255,.07); }
 
+
+/* ─────────────── IMPORT UFUNDED ─────────────── */
+[hidden] { display: none !important; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-btn.import { border-color: var(--accent); color: var(--accent); }
+.topbar-btn.import:hover { background: rgba(108,140,255,.08); }
+.import-meta { margin-left: auto; text-align: right; font-size: 10px; color: var(--txt3); line-height: 1.3; padding-right: 10px; }
+.import-meta b { color: var(--txt2); font-weight: 600; }
+.modal.wide { width: 560px; }
+.dropzone {
+  border: 2px dashed var(--border2); border-radius: 12px; padding: 26px 16px; text-align: center;
+  color: var(--txt2); cursor: pointer; transition: .15s; background: var(--panel2);
+}
+.dropzone:hover, .dropzone.over { border-color: var(--accent); color: var(--txt); background: rgba(108,140,255,.06); }
+.dropzone .big { font-size: 26px; margin-bottom: 6px; }
+.dropzone .t { font-weight: 600; color: var(--txt); margin-bottom: 3px; }
+.dropzone .s { font-size: 11px; color: var(--txt3); }
+.imp-status { font-size: 12px; color: var(--txt2); margin: 12px 0 0; min-height: 16px; }
+.imp-status.err { color: var(--loss); }
+.imp-sum { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 14px; }
+.imp-sum div { background: var(--panel2); padding: 9px 10px; }
+.imp-sum small { display: block; font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--txt3); }
+.imp-sum b { font-size: 14px; font-variant-numeric: tabular-nums; }
+.imp-list { max-height: 230px; overflow-y: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.imp-list table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.imp-list th { position: sticky; top: 0; background: var(--panel3); text-align: left; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--txt3); padding: 7px 10px; }
+.imp-list td { padding: 6px 10px; border-top: 1px solid var(--border); }
+.imp-list td.n, .imp-list th.n { text-align: right; }
+.tag { font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--border); color: var(--txt2); }
+.tag.new { border-color: var(--accent); color: var(--accent); }
+.tag.upd { border-color: var(--be); color: var(--be); }
+.imp-opt { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--txt2); margin-top: 12px; cursor: pointer; }
+.imp-opt input { margin-top: 2px; accent-color: var(--accent); }
+@media (max-width: 480px) { .imp-sum { grid-template-columns: repeat(2, 1fr); } .import-meta { display: none; } }
+
 /* ─────────────── SCROLLBAR ─────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -478,9 +513,12 @@ textarea.field-inp { resize: vertical; min-height: 72px; margin-bottom: 0; }
   <!-- ── TOPBAR ── -->
   <div class="topbar">
     <div class="topbar-title">Journal de Compte</div>
-    <button class="topbar-btn" onclick="openDrawer()">
-      ☰ &nbsp;Menu Principal
-    </button>
+    <div class="topbar-actions">
+      <button class="topbar-btn import" onclick="openImport()">⬆ &nbsp;Importer Ufunded</button>
+      <button class="topbar-btn" onclick="openDrawer()">
+        ☰ &nbsp;Menu Principal
+      </button>
+    </div>
   </div>
 
   <!-- ── STATS STRIP ── -->
@@ -497,7 +535,8 @@ textarea.field-inp { resize: vertical; min-height: 72px; margin-bottom: 0; }
       <div class="stat-lbl">Win %</div>
       <div class="stat-val" id="s-wr">0%</div>
     </div>
-    <button class="details-btn" onclick="toggleDetails()" id="det-btn">
+    <div class="import-meta" id="importMeta"></div>
+    <button class="details-btn" style="margin-left:0" onclick="toggleDetails()" id="det-btn">
       ▼ &nbsp;Détails
     </button>
   </div>
@@ -607,6 +646,9 @@ textarea.field-inp { resize: vertical; min-height: 72px; margin-bottom: 0; }
     <span class="ico">🎨</span> Paramètres &amp; Thème
   </div>
   <div class="drawer-section">Données</div>
+  <div class="drawer-item" onclick="closeDrawer(); openImport()">
+    <span class="ico">📥</span> Importer un relevé Ufunded
+  </div>
   <div class="drawer-item" onclick="closeDrawer(); exportData()">
     <span class="ico">📤</span> Exporter mes données
   </div>
@@ -641,6 +683,32 @@ textarea.field-inp { resize: vertical; min-height: 72px; margin-bottom: 0; }
     <div class="modal-btns">
       <button class="btn btn-danger" style="flex:1" onclick="clearAll()">Confirmer</button>
       <button class="btn"            style="flex:1" onclick="closeClear()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── MODAL IMPORT UFUNDED ── -->
+<div class="modal-bg" id="importModal">
+  <div class="modal wide">
+    <div class="modal-title">Importer un relevé Ufunded</div>
+    <div class="modal-sub" style="margin-bottom:14px">Dépose le PDF « Single-Currency account statement » téléchargé depuis Ufunded. Les P&amp;L sont additionnés jour par jour et ton calendrier est rempli automatiquement. Tes notes sont conservées. Tu peux aussi déposer une sauvegarde .json du journal.</div>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choisir un relevé">
+      <div class="big">📄</div>
+      <div class="t">Glisse ton relevé ici</div>
+      <div class="s">ou clique pour choisir un fichier · PDF Ufunded ou sauvegarde .json</div>
+    </div>
+    <input type="file" id="importFile" accept=".pdf,.json,application/pdf,application/json" hidden>
+    <div class="imp-status" id="impStatus"></div>
+    <div id="impPreview" hidden>
+      <div class="imp-sum" id="impSum"></div>
+      <label class="imp-opt"><input type="checkbox" id="impKeep"> Ne pas modifier les journées que j'ai déjà saisies (n'ajouter que les nouvelles)</label>
+      <div class="imp-list"><table><thead><tr><th>Jour</th><th class="n">P&amp;L</th><th class="n">Trades</th><th>Symboles</th><th>Statut</th></tr></thead><tbody id="impRows"></tbody></table></div>
+    </div>
+    <div class="modal-btns" style="margin-top:18px">
+      <button class="btn btn-primary" id="impApply" onclick="applyImport()" hidden>✓ Mettre à jour le journal</button>
+      <button class="btn" id="impUndo" onclick="undoImport()" hidden>↶ Annuler le dernier import</button>
+      <button class="btn" style="margin-left:auto" onclick="closeImport()">Fermer</button>
     </div>
   </div>
 </div>
@@ -944,6 +1012,253 @@ function clearAll() {
   renderCalendar();
   loadDayForm(1);
 }
+
+/* ═══════════════════════════════════════════
+   IMPORT UFUNDED — lecture du relevé PDF
+═══════════════════════════════════════════ */
+async function ufPdfLines(pdf) {
+  const lines = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const rows = [];
+    for (const it of tc.items) {
+      if (!it.str || !it.str.trim()) continue;
+      const x = it.transform[4], y = it.transform[5];
+      let r = rows.find(r => Math.abs(r.y - y) < 2.5);
+      if (!r) { r = { y, parts: [] }; rows.push(r); }
+      r.parts.push({ x, s: it.str });
+    }
+    rows.sort((a, b) => b.y - a.y);
+    for (const r of rows) lines.push(r.parts.sort((a, b) => a.x - b.x).map(p => p.s).join(' '));
+  }
+  return lines;
+}
+
+function ufNum(s) {
+  return parseFloat(String(s).replace(/[‑‐−–]/g, '-').replace(/[,\s ]/g, ''));
+}
+function ufSym(s) {
+  return s.replace(/^\./, '').replace('/', '').toUpperCase();
+}
+
+function ufParse(lines) {
+  const norm = l => l.replace(/[‑‐−–]/g, '-').replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+  const L = lines.map(norm);
+  const all = L.join('\n');
+  const out = { trades: [], ops: [], account: null, period: null, created: null, balance: null };
+
+  let m;
+  if ((m = all.match(/Account\s+(\S+)\s+Currency/))) out.account = m[1].replace(/^Ufunded_/, '');
+  if ((m = all.match(/(\d{2} \w{3} \d{4}) \d{2}:\d{2} [—-]+ (\d{2} \w{3} \d{4}) \d{2}:\d{2}/))) out.period = [m[1], m[2]];
+  if ((m = all.match(/Created (\d{2}\/\d{2}\/\d{4} \d{2}:\d{2})/))) out.created = m[1];
+  if ((m = all.match(/Balance\s+(-?[\d,]+\.\d{2})/))) out.balance = ufNum(m[1]);
+
+  const reT = /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2}:\d{2})(?:\.\d+)? (Buy|Sell) ([\d,]+(?:\.\d+)?) (\S+) ([\d,]+(?:\.\d+)?) (\d+) (-?[\d,]+\.\d+|—|-)/;
+  const reO = /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2}) (DEPOSIT|WITHDRAWAL|ADJUSTMENT|TRANSFER\w*) (-?[\d,]+\.\d+)/i;
+  for (const l of L) {
+    if ((m = l.match(reT))) {
+      const pnlRaw = m[10];
+      const closed = pnlRaw !== '—' && pnlRaw !== '-';
+      out.trades.push({
+        day: `${m[3]}-${m[2]}-${m[1]}`, time: m[4], side: m[5], size: ufNum(m[6]),
+        sym: ufSym(m[7]), price: ufNum(m[8]), order: m[9],
+        pnl: closed ? ufNum(pnlRaw) : null
+      });
+    } else if ((m = l.match(reO))) {
+      out.ops.push({ day: `${m[3]}-${m[2]}-${m[1]}`, time: m[4], type: m[5].toUpperCase(), amount: ufNum(m[6]) });
+    }
+  }
+  return out;
+}
+
+function ufDays(trades) {
+  const days = {};
+  for (const t of trades) {
+    const d = days[t.day] || (days[t.day] = { pnl: 0, n: 0, wins: 0, losses: 0, syms: new Set(), lots: 0 });
+    d.syms.add(t.sym);
+    if (t.pnl === null) continue;          // ouverture : pas de P&L
+    d.pnl += t.pnl; d.n++; d.lots += t.size;
+    if (t.pnl > 0) d.wins++; else if (t.pnl < 0) d.losses++;
+  }
+  for (const k in days) {
+    const d = days[k];
+    d.pnl = Math.round(d.pnl * 100) / 100;
+    if (!d.n) delete days[k];
+  }
+  return days;
+}
+
+
+/* ═══════════════════════════════════════════
+   IMPORT — interface
+═══════════════════════════════════════════ */
+const PDFJS_SRC    = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pendingImport = null;
+
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  return new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = PDFJS_SRC;
+    sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; res(window.pdfjsLib); };
+    sc.onerror = () => rej(new Error('Impossible de charger le lecteur PDF (connexion internet ?)'));
+    document.head.appendChild(sc);
+  });
+}
+
+function impStatus(msg, err) {
+  const e = document.getElementById('impStatus');
+  e.textContent = msg || '';
+  e.className = 'imp-status' + (err ? ' err' : '');
+}
+function openImport() {
+  document.getElementById('importModal').classList.add('open');
+  document.getElementById('impUndo').hidden = !localStorage.getItem('tradelog_backup');
+}
+function closeImport() {
+  document.getElementById('importModal').classList.remove('open');
+  pendingImport = null;
+  document.getElementById('impPreview').hidden = true;
+  document.getElementById('impApply').hidden = true;
+  impStatus('');
+}
+
+async function handleImportFile(file) {
+  if (!file) return;
+  pendingImport = null;
+  document.getElementById('impPreview').hidden = true;
+  document.getElementById('impApply').hidden = true;
+  try {
+    if (/\.json$/i.test(file.name) || file.type === 'application/json') {
+      const obj = JSON.parse(await file.text());
+      const days = {};
+      for (const k in obj) if (/^\d{4}-\d{2}-\d{2}$/.test(k) && obj[k] && obj[k].result) days[k] = obj[k];
+      if (!Object.keys(days).length) throw new Error('Ce fichier JSON ne contient aucune journée du journal.');
+      pendingImport = { kind: 'json', file: file.name, entries: days };
+    } else {
+      impStatus('Lecture du relevé…');
+      const lib = await loadPdfJs();
+      const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+      const r = ufParse(await ufPdfLines(pdf));
+      if (!r.trades.length) throw new Error('Aucune transaction trouvée. Vérifie que c\'est bien le relevé de compte Ufunded (PDF).');
+      const days = ufDays(r.trades), entries = {};
+      for (const k in days) {
+        const d = days[k];
+        entries[k] = {
+          result: d.pnl > 0 ? 'win' : d.pnl < 0 ? 'loss' : 'be',
+          amount: Math.abs(d.pnl).toFixed(2),
+          symbols: [...d.syms].join(', '),
+          trades: d.n, wins: d.wins, losses: d.losses, pnl: d.pnl
+        };
+      }
+      pendingImport = { kind: 'ufunded', file: file.name, entries, meta: r };
+    }
+    showPreview();
+  } catch (e) {
+    impStatus(e.message || String(e), true);
+  }
+}
+
+function showPreview() {
+  const P = pendingImport, data = getData();
+  const keys = Object.keys(P.entries).sort().reverse();
+  let nNew = 0, nUpd = 0, total = 0, rows = '';
+  for (const k of keys) {
+    const e = P.entries[k], cur = data[k];
+    const v = e.result === 'loss' ? -Math.abs(parseFloat(e.amount)) : Math.abs(parseFloat(e.amount) || 0);
+    total += v;
+    let st;
+    if (!cur) { st = '<span class="tag new">Nouveau</span>'; nNew++; }
+    else if (cur.result === e.result && Math.abs((parseFloat(cur.amount) || 0) - (parseFloat(e.amount) || 0)) < 0.005) st = '<span class="tag">Identique</span>';
+    else { st = '<span class="tag upd">Mis à jour</span>'; nUpd++; }
+    const [y, m, d] = k.split('-');
+    rows += `<tr><td>${d}/${m}/${y}</td><td class="n" style="color:${colorOf(v)}">${fmtVal(v)}</td><td class="n">${e.trades ?? '—'}</td><td>${(e.symbols || '').replace(/[<>&]/g, '')}</td><td>${st}</td></tr>`;
+  }
+  document.getElementById('impRows').innerHTML = rows;
+  const M = P.meta;
+  document.getElementById('impSum').innerHTML =
+    `<div><small>Journées</small><b>${keys.length}</b></div>` +
+    `<div><small>Nouvelles</small><b>${nNew}</b></div>` +
+    `<div><small>Mises à jour</small><b>${nUpd}</b></div>` +
+    `<div><small>P&amp;L total</small><b style="color:${colorOf(total)}">${fmtVal(total)}</b></div>`;
+  impStatus(P.kind === 'ufunded'
+    ? `Compte ${M.account || '?'} · relevé du ${M.period ? M.period.join(' au ') : '?'} · ${M.trades.filter(t => t.pnl !== null).length} trades clôturés · solde ${M.balance != null ? M.balance.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' $' : '?'}`
+    : `Sauvegarde ${P.file}`);
+  document.getElementById('impPreview').hidden = false;
+  document.getElementById('impApply').hidden = false;
+}
+
+function applyImport() {
+  const P = pendingImport;
+  if (!P) return;
+  const keep = document.getElementById('impKeep').checked;
+  const data = getData();
+  localStorage.setItem('tradelog_backup', JSON.stringify(data));
+  const stamp = new Date().toISOString();
+  let n = 0, last = null;
+  for (const k in P.entries) {
+    const e = P.entries[k], cur = data[k];
+    if (cur && keep) continue;
+    if (P.kind === 'json') { data[k] = e; n++; last = !last || k > last ? k : last; continue; }
+    const auto = `Ufunded · ${e.trades} trade${e.trades > 1 ? 's' : ''} (${e.wins} gagnant${e.wins > 1 ? 's' : ''}, ${e.losses} perdant${e.losses > 1 ? 's' : ''})`;
+    const notes = cur && cur.notes && !/^Ufunded · /.test(cur.notes) ? cur.notes : auto;
+    data[k] = { result: e.result, amount: e.amount, symbols: e.symbols, notes, savedAt: stamp, source: 'ufunded' };
+    n++; last = !last || k > last ? k : last;
+  }
+  putData(data);
+  if (P.kind === 'ufunded') {
+    const M = P.meta;
+    localStorage.setItem('tradelog_import', JSON.stringify({ at: stamp, account: M.account, period: M.period, created: M.created, balance: M.balance }));
+  }
+  if (last) { const [y, m] = last.split('-').map(Number); viewY = y; viewM = m - 1; }
+  selRes = null;
+  renderCalendar(); loadDayForm(selDay); renderImportMeta();
+  pendingImport = null;
+  document.getElementById('impApply').hidden = true;
+  document.getElementById('impPreview').hidden = true;
+  document.getElementById('impUndo').hidden = false;
+  impStatus(`✓ ${n} journée${n > 1 ? 's' : ''} mise${n > 1 ? 's' : ''} à jour dans le journal.`);
+}
+
+function undoImport() {
+  const b = localStorage.getItem('tradelog_backup');
+  if (!b) return;
+  localStorage.setItem('tradelog', b);
+  localStorage.removeItem('tradelog_backup');
+  document.getElementById('impUndo').hidden = true;
+  renderCalendar(); loadDayForm(selDay);
+  impStatus('Dernier import annulé : le journal est revenu à son état précédent.');
+}
+
+function renderImportMeta() {
+  const el = document.getElementById('importMeta');
+  let m = null;
+  try { m = JSON.parse(localStorage.getItem('tradelog_import') || 'null'); } catch (e) {}
+  if (!m) { el.innerHTML = ''; return; }
+  const bal = m.balance != null ? m.balance.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $' : '';
+  el.innerHTML = `Ufunded ${m.account || ''} · solde <b>${bal}</b><br>relevé jusqu'au ${m.period ? m.period[1] : '?'}`;
+}
+
+(function initImport() {
+  const dz = document.getElementById('dropzone'), fi = document.getElementById('importFile');
+  dz.onclick = () => fi.click();
+  dz.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); } };
+  fi.onchange = () => { handleImportFile(fi.files[0]); fi.value = ''; };
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
+  dz.ondragleave = () => dz.classList.remove('over');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); handleImportFile(e.dataTransfer.files[0]); };
+  // déposer un fichier n'importe où sur la page ouvre l'import
+  document.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
+  document.addEventListener('drop', e => {
+    if (e.target.closest && e.target.closest('#dropzone')) return;
+    e.preventDefault();
+    const f = e.dataTransfer?.files?.[0];
+    if (f) { openImport(); handleImportFile(f); }
+  });
+  renderImportMeta();
+})();
 
 /* ═══════════════════════════════════════════
    INIT
