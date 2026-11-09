@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal de Compte</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────── RESET & BASE ─────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0f1117;
+  --panel:     #171b26;
+  --panel2:    #1e2333;
+  --panel3:    #252c40;
+  --border:    #2a3150;
+  --border2:   #384070;
+  --accent:    #6c8cff;
+  --win:       #22c55e;
+  --win-bg:    rgba(34,197,94,0.09);
+  --win-brd:   rgba(34,197,94,0.30);
+  --loss:      #ef4444;
+  --loss-bg:   rgba(239,68,68,0.09);
+  --loss-brd:  rgba(239,68,68,0.30);
+  --be:        #f59e0b;
+  --be-bg:     rgba(245,158,11,0.09);
+  --be-brd:    rgba(245,158,11,0.30);
+  --txt:       #e2e8f8;
+  --txt2:      #7a8aaa;
+  --txt3:      #3d4a68;
+  --font:      'Inter', system-ui, sans-serif;
+}
+
+/* Themes */
+.th-sombre  { }
+.th-bleu    { --bg:#02091a; --panel:#071428; --panel2:#0c1c38; --panel3:#112248; --border:#1a3060; --border2:#254880; --accent:#4d9fff; }
+.th-violet  { --bg:#09031a; --panel:#110828; --panel2:#1a0f38; --panel3:#221548; --border:#381a60; --border2:#502888; --accent:#a855f7; }
+.th-clair   { --bg:#f0f4ff; --panel:#ffffff; --panel2:#eaeeff; --panel3:#dde4ff; --border:#c5d0f0; --border2:#a0b0e0; --txt:#1a2050; --txt2:#485580; --txt3:#8898c0; --accent:#3b62e8; }
+.th-orange  { --bg:#110800; --panel:#1c1000; --panel2:#271800; --panel3:#332000; --border:#442800; --border2:#604000; --accent:#f97316; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--txt);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-x: hidden;
+}
+
+/* ─────────────── LAYOUT ─────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ─────────────── TOPBAR ─────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 52px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--txt);
+}
+.topbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--txt2);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: .15s;
+}
+.topbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─────────────── STATS STRIP ─────────────── */
+.stats-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 20px;
+  height: 46px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 22px 0 0;
+  margin-right: 22px;
+  border-right: 1px solid var(--border);
+  min-width: 80px;
+}
+.stat-block:last-of-type { border-right: none; }
+.stat-lbl { font-size: 9px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--txt3); }
+.stat-val { font-size: 15px; font-weight: 700; color: var(--txt); margin-top: 1px; }
+.details-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--txt3);
+  font-family: var(--font);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: .15s;
+  white-space: nowrap;
+}
+.details-btn:hover { color: var(--txt2); }
+
+/* ─────────────── DETAILS PANEL ─────────────── */
+.details-panel {
+  display: none;
+  background: var(--panel2);
+  border-bottom: 1px solid var(--border);
+}
+.details-panel.open {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+.det-cell {
+  padding: 13px 18px;
+  border-right: 1px solid var(--border);
+}
+.det-cell:last-child { border-right: none; }
+.det-lbl { font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--txt3); margin-bottom: 3px; }
+.det-val { font-size: 15px; font-weight: 700; }
+.det-sub { font-size: 11px; color: var(--txt3); margin-top: 1px; }
+
+/* ─────────────── MAIN BODY ─────────────── */
+.body-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─────────────── CALENDAR PANEL ─────────────── */
+.cal-panel {
+  flex: 1;
+  padding: 22px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.cal-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--txt2);
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .15s;
+}
+.cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cal-month { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.xl-dl { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid #3fb950; border-radius: 8px; color: #3fb950; font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.topbar-btn.mc { border-color: #a371f7; color: #a371f7; font-weight: 600; }
+.topbar-btn.mc:hover { background: rgba(163,113,247,.1); }
+.mc-log { margin-top: 12px; max-height: 300px; overflow-y: auto; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font: 12px/1.6 Menlo, Consolas, monospace; color: var(--txt2); white-space: pre-wrap; }
+.mc-log:empty { display: none; }
+.xl-dl:hover { background: rgba(63,185,80,.1); }
+.xl-dl small { color: var(--txt3); font-weight: 400; }
+.cal-nav { flex-wrap: wrap; }
+.cal-mtr { font-size: 12px; color: var(--txt2); padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px; background: var(--panel2); white-space: nowrap; }
+.cal-mtr b { color: var(--txt); }
+.cal-mtr:empty { display: none; }
+
+.cal-grid-wrap { }
+.day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.day-name {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt3);
+  padding: 2px 0 5px;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-cell {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 2px 5px;
+  min-height: 58px;
+  transition: border-color .15s, transform .1s;
+  position: relative;
+}
+.cal-cell:hover { border-color: var(--border2); transform: scale(1.04); z-index: 2; }
+.cal-cell.empty { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+.cal-cell.win  { background: var(--win-bg);  border-color: var(--win-brd); }
+.cal-cell.loss { background: var(--loss-bg); border-color: var(--loss-brd); }
+.cal-cell.be   { background: var(--be-bg);   border-color: var(--be-brd); }
+.cal-cell.active { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(108,140,255,.2); }
+.cal-cell.today .cell-num { color: var(--accent); font-weight: 700; }
+
+.cell-num  { font-size: 13px; font-weight: 500; line-height: 1; }
+.cell-amt  { font-size: 10px; font-weight: 500; margin-top: 4px; }
+.cal-cell.win  .cell-amt { color: var(--win); }
+.cal-cell.loss .cell-amt { color: var(--loss); }
+.cal-cell.be   .cell-amt { color: var(--be); }
+.cell-dot  { width: 4px; height: 4px; border-radius: 50%; margin-top: 4px; }
+.cal-cell.win  .cell-dot { background: var(--win); }
+.cal-cell.loss .cell-dot { background: var(--loss); }
+.cal-cell.be   .cell-dot { background: var(--be); }
+
+/* ─────────────── ENTRY PANEL ─────────────── */
+.entry-panel {
+  width: 380px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.entry-head {
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt2);
+}
+.entry-body { padding: 18px; flex: 1; }
+
+/* Result placeholder */
+.res-placeholder {
+  font-size: 11px;
+  color: var(--txt3);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* Result buttons */
+.res-row { display: flex; gap: 8px; margin-bottom: 18px; }
+.res-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--txt2);
+  transition: .15s;
+}
+.res-btn.win-btn:hover,
+.res-btn.win-btn.on { border-color: var(--win); background: var(--win-bg); color: var(--win); }
+.res-btn.loss-btn:hover,
+.res-btn.loss-btn.on { border-color: var(--loss); background: var(--loss-bg); color: var(--loss); }
+.res-btn.be-btn:hover,
+.res-btn.be-btn.on { border-color: var(--be); background: var(--be-bg); color: var(--be); }
+
+/* Form fields */
+.field-lbl {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--txt3);
+  margin-bottom: 5px;
+}
+.field-inp {
+  width: 100%;
+  padding: 9px 11px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--txt);
+  font-family: var(--font);
+  font-size: 13px;
+  margin-bottom: 14px;
+  transition: border-color .15s;
+  outline: none;
+}
+.field-inp:focus { border-color: var(--accent); }
+textarea.field-inp { resize: vertical; min-height: 72px; margin-bottom: 0; }
+
+/* Actions */
+.entry-actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  color: var(--txt2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: .15s;
+}
+.btn:hover { border-color: var(--border2); color: var(--txt); }
+.btn-primary {
+  flex: 1;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+.btn-primary:hover { opacity: .88; color: #fff; }
+.btn-danger { border-color: var(--loss); color: var(--loss); font-size: 11px; }
+.btn-danger:hover { background: var(--loss-bg); }
+
+/* ─────────────── DRAWER ─────────────── */
+.drawer-mask {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+}
+.drawer-mask.open { display: block; }
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 260px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+.drawer.open { transform: translateX(0); }
+
+.drawer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.drawer-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--txt2); font-size: 18px; line-height: 1;
+  padding: 2px 6px; border-radius: 4px;
+}
+.drawer-close:hover { color: var(--txt); }
+
+.drawer-section { padding: 14px 14px 4px; font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--txt3); }
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  cursor: pointer;
+  color: var(--txt2);
+  font-size: 13px;
+  border-radius: 0;
+  transition: .15s;
+}
+.drawer-item:hover { background: var(--panel2); color: var(--txt); }
+.drawer-item .ico { font-size: 15px; width: 20px; text-align: center; }
+.drawer-item.danger { color: var(--loss); }
+.drawer-item.danger:hover { background: var(--loss-bg); }
+
+/* ─────────────── MODALS ─────────────── */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+}
+.modal-bg.open { display: flex; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 26px;
+  width: 340px;
+  max-width: 94vw;
+}
+.modal-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.modal-sub { font-size: 12px; color: var(--txt2); margin-bottom: 20px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 8px; }
+
+/* Theme buttons */
+.theme-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.theme-pill {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--txt2);
+  background: none;
+  transition: .15s;
+}
+.theme-pill:hover { border-color: var(--border2); color: var(--txt); }
+.theme-pill.on { border-color: var(--accent); color: var(--accent); background: rgba(108,140,255,.07); }
+
+
+/* ─────────────── IMPORT UFUNDED ─────────────── */
+[hidden] { display: none !important; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-btn.import { border-color: var(--accent); color: var(--accent); }
+.topbar-btn.import:hover { background: rgba(108,140,255,.08); }
+.topbar-btn.gh { border-color: #3fb950; color: #3fb950; font-weight: 600; }
+.topbar-btn.gh:hover { background: rgba(63,185,80,.1); }
+.topbar-btn.gh.dirty { border-color: #f0a030; color: #f0a030; }
+.topbar-btn.gh.dirty:hover { background: rgba(240,160,48,.1); }
+.topbar-btn.gh:disabled { opacity: .6; cursor: wait; }
+.gh-state { font-size: 10px; color: var(--txt3); margin-right: 4px; white-space: nowrap; }
+.gh-state.dirty { color: #f0a030; } .gh-state.ok { color: #3fb950; } .gh-state.err { color: #ff5a5a; }
+.gh-state { cursor: pointer; } .gh-state:hover { text-decoration: underline; }
+.gh-state.warn { color: #f0a030; font-weight: 600; }
+.gh-state.err { font-weight: 600; padding: 3px 8px; border: 1px solid #ff5a5a; border-radius: 6px; background: rgba(255,90,90,.08); }
+.gh-steps { margin: 6px 0 4px; padding-left: 18px; font-size: 12px; line-height: 1.7; color: var(--txt2, var(--txt)); }
+.gh-row { display: flex; gap: 8px; align-items: center; }
+.gh-row .gh-input { flex: 1; }
+.gh-mini { padding: 8px 10px; font-size: 11px; white-space: nowrap; }
+#ghModal .modal-btns { flex-wrap: wrap; } #ghModal .modal-btns .btn { white-space: nowrap; }
+.gh-ok { color: #3fb950; } .gh-ko { color: #ff5a5a; } .gh-wa { color: #f0a030; }
+.gh-ask { margin-top: 14px; padding: 12px 14px; border: 1px solid #3fb950; border-radius: 8px; background: rgba(63,185,80,.07); font-size: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.gh-field { display: block; margin: 10px 0 4px; font-size: 11px; color: var(--txt3); text-transform: uppercase; letter-spacing: .08em; }
+.gh-input { width: 100%; box-sizing: border-box; padding: 9px 11px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; color: var(--txt); font-family: var(--font); font-size: 12px; }
+@media (max-width: 640px) { .gh-state { display: none; } }
+/* trades visuels */
+.dt-wrap { padding: 14px 18px 4px; border-bottom: 1px solid var(--border); }
+.dt-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--txt2); margin-bottom: 8px; }
+.dt-head b { font-size: 13px; letter-spacing: 0; }
+.dt-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+.dt-kpi { background: var(--panel2); border: 1px solid var(--border); border-radius: 7px; padding: 6px 8px; }
+.dt-kpi .l { font-size: 9px; color: var(--txt2); text-transform: uppercase; letter-spacing: .08em; }
+.dt-kpi .v { white-space: nowrap; font-size: 11.5px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.dt-curve { width: 100%; height: 70px; display: block; margin-bottom: 10px; background: var(--panel2); border: 1px solid var(--border); border-radius: 7px; }
+.dt-list { display: flex; flex-direction: column; gap: 6px; max-height: 46vh; overflow-y: auto; padding-bottom: 10px; }
+.dt-card { position: relative; background: var(--panel2); border: 1px solid var(--border); border-left: 3px solid var(--be); border-radius: 7px; padding: 8px 10px; cursor: pointer; transition: .12s; }
+.dt-card:hover { border-color: var(--border2); }
+.dt-card.win { border-left-color: var(--win); } .dt-card.loss { border-left-color: var(--loss); }
+.dt-card.hl { box-shadow: 0 0 0 2px var(--accent); }
+.dt-row1 { display: flex; align-items: center; gap: 6px; font-size: 11px; white-space: nowrap; }
+.dt-row1 .t:first-child { overflow: hidden; text-overflow: ellipsis; }
+.dt-row1 .t { color: var(--txt2); font-variant-numeric: tabular-nums; }
+.dt-row1 .sym { font-weight: 700; }
+.dt-row1 .pnl { margin-left: auto; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+.dt-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: .04em; }
+.dt-badge.buy { background: rgba(34,197,94,.15); color: var(--win); } .dt-badge.sell { background: rgba(239,68,68,.15); color: var(--loss); }
+.dt-bar { margin-top: 6px; display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--txt2); font-variant-numeric: tabular-nums; }
+.dt-bar svg { flex: 1; height: 14px; }
+.dt-note { display: none; margin-top: 7px; font-size: 11px; line-height: 1.45; color: var(--txt); white-space: pre-wrap; border-top: 1px dashed var(--border); padding-top: 6px; }
+.dt-card.open .dt-note { display: block; }
+.dt-card .hint { font-size: 9px; color: var(--accent); }
+.cal-cell .tr-n { font-size: 9px; opacity: .65; }
+/* analyse par heure */
+.hr-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.hr-filters select { padding: 7px 10px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; color: var(--txt); font-family: var(--font); font-size: 12px; }
+.hr-best { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.hr-best div { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--txt2); }
+.hr-best b { display: block; font-size: 13px; margin-top: 3px; }
+.hr-tbl { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.hr-tbl th { text-align: left; font-size: 10px; color: var(--txt2); text-transform: uppercase; letter-spacing: .08em; padding: 6px 6px; border-bottom: 1px solid var(--border); }
+.hr-tbl td { white-space: nowrap; padding: 5px 6px; border-bottom: 1px solid var(--border); }
+.hr-tbl .n { text-align: right; }
+.hr-tbl .bar { width: 38%; }
+.hr-tbl .bar div { position: relative; height: 12px; }
+.hr-tbl .bar span { position: absolute; top: 0; height: 12px; border-radius: 2px; }
+.hr-tbl .bar i { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border2); }
+.hr-tbl tr.sess td { background: var(--panel2); color: var(--txt2); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; padding: 4px 6px; }
+.hr-scroll { max-height: 56vh; overflow-y: auto; }
+/* drawdown */
+.dd-strip { display: flex; align-items: center; gap: 18px; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--panel); flex-wrap: wrap; }
+.dd-lbl { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--txt2); }
+.dd-main { display: flex; flex-direction: column; gap: 2px; min-width: 150px; }
+.dd-main b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.dd-gauge { flex: 1; min-width: 260px; }
+.dd-track { position: relative; height: 12px; border-radius: 6px; background: var(--panel2); border: 1px solid var(--border); overflow: hidden; }
+.dd-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; }
+.dd-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--txt2); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.dd-side { display: flex; gap: 16px; font-size: 11px; color: var(--txt2); }
+.dd-side b { display: block; font-size: 13px; color: var(--txt); font-variant-numeric: tabular-nums; }
+.dd-alert { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; }
+.ind-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.ind-c { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; }
+.ind-c .l { font-size: 10px; color: var(--txt2); text-transform: uppercase; letter-spacing: .06em; }
+.ind-c .v { font-size: 16px; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ind-c .s { font-size: 10px; color: var(--txt2); margin-top: 2px; }
+.ind-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ind-box { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.ind-box h4 { margin: 0 0 8px; font-size: 11px; color: var(--txt2); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+.ind-row { display: grid; grid-template-columns: 64px 1fr 74px; gap: 8px; align-items: center; font-size: 11px; margin: 5px 0; font-variant-numeric: tabular-nums; }
+.ind-row .bw { position: relative; height: 10px; } .ind-row .bw i { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border2); }
+.ind-row .bw span { position: absolute; top: 0; height: 10px; border-radius: 2px; }
+.ind-row .n { text-align: right; font-weight: 700; }
+@media (max-width: 700px) { .ind-grid { grid-template-columns: repeat(2, 1fr); } .ind-two { grid-template-columns: 1fr; } .dd-side { flex-wrap: wrap; } }
+.import-meta { margin-left: auto; text-align: right; font-size: 10px; color: var(--txt3); line-height: 1.3; padding-right: 10px; }
+.import-meta b { color: var(--txt2); font-weight: 600; }
+.modal.wide { width: 560px; }
+.dropzone {
+  border: 2px dashed var(--border2); border-radius: 12px; padding: 26px 16px; text-align: center;
+  color: var(--txt2); cursor: pointer; transition: .15s; background: var(--panel2);
+}
+.dropzone:hover, .dropzone.over { border-color: var(--accent); color: var(--txt); background: rgba(108,140,255,.06); }
+.dropzone .big { font-size: 26px; margin-bottom: 6px; }
+.dropzone .t { font-weight: 600; color: var(--txt); margin-bottom: 3px; }
+.dropzone .s { font-size: 11px; color: var(--txt3); }
+.imp-status { font-size: 12px; color: var(--txt2); margin: 12px 0 0; min-height: 16px; }
+.imp-status.err { color: var(--loss); }
+.imp-sum { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 14px; }
+.imp-sum div { background: var(--panel2); padding: 9px 10px; }
+.imp-sum small { display: block; font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--txt3); }
+.imp-sum b { font-size: 14px; font-variant-numeric: tabular-nums; }
+.imp-list { max-height: 230px; overflow-y: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.imp-list table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.imp-list th { position: sticky; top: 0; background: var(--panel3); text-align: left; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--txt3); padding: 7px 10px; }
+.imp-list td { padding: 6px 10px; border-top: 1px solid var(--border); }
+.imp-list td.n, .imp-list th.n { text-align: right; }
+.tag { font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--border); color: var(--txt2); }
+.tag.new { border-color: var(--accent); color: var(--accent); }
+.tag.upd { border-color: var(--be); color: var(--be); }
+.imp-opt { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--txt2); margin-top: 12px; cursor: pointer; }
+.imp-opt input { margin-top: 2px; accent-color: var(--accent); }
+@media (max-width: 480px) { .imp-sum { grid-template-columns: repeat(2, 1fr); } .import-meta { display: none; } }
+
+/* ─────────────── SCROLLBAR ─────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─────────────── RESPONSIVE ─────────────── */
+@media (max-width: 768px) {
+  .body-area { flex-direction: column; }
+  .entry-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+  .cal-cell { min-height: 42px; }
+  .cell-amt { display: none; }
+  .cal-panel { padding: 14px; }
+}
+@media (max-width: 480px) {
+  .stats-strip { padding: 0 12px; }
+  .stat-block { padding: 0 14px 0 0; margin-right: 14px; }
+  .stat-val { font-size: 14px; }
+  .topbar { padding: 0 14px; }
+}
+</style>
+</head>
+<body class="th-sombre">
+
+<div class="app">
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <div class="topbar-title">Journal de Compte</div>
+    <div class="topbar-actions">
+      <span class="gh-state" id="ghState" onclick="openGhCfg()" title="Réglages GitHub (jeton)"></span>
+      <button class="topbar-btn gh" id="ghBtn" onclick="saveToGitHub()" title="Enregistre le journal dans le dépôt GitHub (fichier tradelog.json)">☁ &nbsp;Sauvegarder sur GitHub</button>
+      <button class="topbar-btn" onclick="openHours()" title="P&amp;L par heure d'entrée">⏱ &nbsp;Heures</button>
+      <button class="topbar-btn import" onclick="openImport()">⬆ &nbsp;Importer Ufunded</button>
+      <button class="topbar-btn mc" onclick="openMaj()" title="Ajoute dans le journal Excel KTA les trades importés, puis le publie sur GitHub">🤖 &nbsp;MAJ Claude</button>
+      <button class="topbar-btn" onclick="openDrawer()">
+        ☰ &nbsp;Menu Principal
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STATS STRIP ── -->
+  <div class="stats-strip">
+    <div class="stat-block">
+      <div class="stat-lbl">Mois</div>
+      <div class="stat-val" id="s-mois">€0.00</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Année</div>
+      <div class="stat-val" id="s-annee">€0.00</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-lbl">Win %</div>
+      <div class="stat-val" id="s-wr">0%</div>
+    </div>
+    <div class="import-meta" id="importMeta"></div>
+    <button class="details-btn" style="margin-left:0" onclick="toggleDetails()" id="det-btn">
+      ▼ &nbsp;Détails
+    </button>
+  </div>
+
+  <!-- ── DRAWDOWN ── -->
+  <div class="dd-strip" id="ddStrip">
+    <div class="dd-main"><span class="dd-lbl">Marge avant drawdown max</span><b id="ddLeft">—</b></div>
+    <div class="dd-gauge">
+      <div class="dd-track" title="Part du drawdown maximum déjà consommée"><div class="dd-fill" id="ddFill"></div></div>
+      <div class="dd-ticks"><span id="ddFloor">Seuil —</span><span id="ddUsed">—</span><span id="ddSize">Taille —</span></div>
+    </div>
+    <div class="dd-side">
+      <div title="Solde − capital de départ − dépôts − ajustements (même calcul que Ufunded)">P&amp;L net total compte<b id="ddPnl">—</b></div>
+      <div>Solde<b id="ddBal">—</b></div>
+      <div>Pertes moy. restantes<b id="ddLoss">—</b></div>
+    </div>
+    <span class="dd-alert" id="ddAlert"></span>
+    <button class="topbar-btn" onclick="openInd()">📊 &nbsp;Indicateurs</button>
+    <button class="topbar-btn" onclick="openDdCfg()" title="Régler la taille du compte et le drawdown max">⚙</button>
+  </div>
+
+  <!-- ── DETAILS PANEL ── -->
+  <div class="details-panel" id="detPanel">
+    <div class="det-cell">
+      <div class="det-lbl">P&amp;L Ce Mois</div>
+      <div class="det-val" id="d-mpnl">€0.00</div>
+      <div class="det-sub" id="d-mdays">0 jours</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Win Rate Mois</div>
+      <div class="det-val" id="d-mwr">0%</div>
+      <div class="det-sub" id="d-mwl">W:0 L:0</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Best Jour Mois</div>
+      <div class="det-val" id="d-mbest">€0.00</div>
+      <div class="det-sub" id="d-mbestd">—</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Moy./Jour Mois</div>
+      <div class="det-val" id="d-mavg">€0.00</div>
+      <div class="det-sub" id="d-mavgsub">jours tradés</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">P&amp;L Annuel</div>
+      <div class="det-val" id="d-ypnl">€0.00</div>
+      <div class="det-sub" id="d-ydays">0 jours</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Win Rate Annuel</div>
+      <div class="det-val" id="d-ywr">0%</div>
+      <div class="det-sub" id="d-ywl">W:0 L:0</div>
+    </div>
+    <div class="det-cell">
+      <div class="det-lbl">Best Mois</div>
+      <div class="det-val" id="d-bmonth">—</div>
+      <div class="det-sub" id="d-bmonthv">€0.00</div>
+    </div>
+  </div>
+
+  <!-- ── BODY ── -->
+  <div class="body-area">
+
+    <!-- CALENDRIER -->
+    <div class="cal-panel">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+        <div class="cal-month" id="calMonth">Janvier 2026</div>
+        <div class="cal-mtr" id="calMtr"></div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+        <a class="xl-dl" id="xlDl" href="Journal_Trading_KTA_2026_COMPLET_Avril-Novembre.xlsx" download="Journal_Trading_KTA_2026_COMPLET_Avril-Novembre.xlsx" title="Télécharge la dernière version du journal Excel KTA">⬇ Download MAJ de Journal_Trading_KTA_2026_COMPLET_Avril-Novembre.xlsx <small id="xlWhen"></small></a>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="day-names">
+          <div class="day-name">Lun</div>
+          <div class="day-name">Mar</div>
+          <div class="day-name">Mer</div>
+          <div class="day-name">Jeu</div>
+          <div class="day-name">Ven</div>
+          <div class="day-name">Sam</div>
+          <div class="day-name">Dim</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- SAISIE -->
+    <div class="entry-panel">
+      <div class="entry-head" id="entryHead">LUNDI 1 JANVIER</div>
+      <div class="dt-wrap" id="dayTrades" hidden></div>
+      <div class="entry-body">
+        <div class="res-placeholder">Résultat — choisis d'abord</div>
+        <div class="res-row">
+          <button class="res-btn win-btn"  onclick="setResult('win')">✓ WIN</button>
+          <button class="res-btn loss-btn" onclick="setResult('loss')">✗ LOSS</button>
+          <button class="res-btn be-btn"   onclick="setResult('be')">— BE</button>
+        </div>
+        <label class="field-lbl">Montant gagné (€)</label>
+        <input  class="field-inp" type="number" id="fAmt" placeholder="+€" step="0.01">
+        <label class="field-lbl">Symboles (ex: BTC, CAC40)</label>
+        <input  class="field-inp" type="text" id="fSym" placeholder="BTC, EUR/USD…">
+        <label class="field-lbl">Notes</label>
+        <textarea class="field-inp" id="fNotes" placeholder="Observations, stratégie…"></textarea>
+        <div class="entry-actions">
+          <button class="btn btn-primary" onclick="saveDay()">✓ SAUVEGARDER</button>
+          <button class="btn btn-danger"  onclick="deleteDay()">Supprimer cette journée</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body-area -->
+</div><!-- /app -->
+
+<!-- ── DRAWER ── -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-top">
+    <span>Menu Principal</span>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-section">Navigation</div>
+  <div class="drawer-item" onclick="closeDrawer()">
+    <span class="ico">📅</span> Calendrier
+  </div>
+  <div class="drawer-section">Outils</div>
+  <div class="drawer-item" onclick="closeDrawer(); openHours()">
+    <span class="ico">⏱</span> P&amp;L par heure
+  </div>
+  <div class="drawer-item" onclick="closeDrawer(); openTheme()">
+    <span class="ico">🎨</span> Paramètres &amp; Thème
+  </div>
+  <div class="drawer-section">Données</div>
+  <div class="drawer-item" onclick="closeDrawer(); openImport()">
+    <span class="ico">📥</span> Importer un relevé Ufunded
+  </div>
+  <div class="drawer-item" onclick="closeDrawer(); saveToGitHub()">
+    <span class="ico">☁️</span> Sauvegarder sur GitHub
+  </div>
+  <div class="drawer-item" onclick="closeDrawer(); openGhCfg()">
+    <span class="ico">🔑</span> Réglages GitHub (jeton)
+  </div>
+  <div class="drawer-item" onclick="closeDrawer(); openMaj()">
+    <span class="ico">🤖</span> MAJ Claude du journal Excel
+  </div>
+  <div class="drawer-item" onclick="closeDrawer(); document.getElementById('xlFile').click()">
+    <span class="ico">📗</span> Publier une MAJ du journal Excel sur GitHub
+  </div>
+  <input type="file" id="xlFile" accept=".xlsx" hidden onchange="uploadXlsx(this.files[0]); this.value=''">
+  <div class="drawer-item" onclick="closeDrawer(); exportData()">
+    <span class="ico">📤</span> Exporter mes données
+  </div>
+  <div class="drawer-item danger" onclick="closeDrawer(); openClear()">
+    <span class="ico">🗑️</span> Effacer toutes les données
+  </div>
+</div>
+
+<!-- ── MODAL THÈME ── -->
+<div class="modal-bg" id="themeModal">
+  <div class="modal">
+    <div class="modal-title">Paramètres</div>
+    <div class="modal-sub">Thème de l'application</div>
+    <div class="theme-btns" id="themeBtns">
+      <button class="theme-pill on" data-t="sombre" onclick="applyTheme('sombre',this)">Sombre</button>
+      <button class="theme-pill"    data-t="bleu"   onclick="applyTheme('bleu',this)">Bleu</button>
+      <button class="theme-pill"    data-t="violet" onclick="applyTheme('violet',this)">Violet</button>
+      <button class="theme-pill"    data-t="clair"  onclick="applyTheme('clair',this)">Clair</button>
+      <button class="theme-pill"    data-t="orange" onclick="applyTheme('orange',this)">Orange</button>
+    </div>
+    <div class="modal-btns" style="margin-top:18px; justify-content:flex-end">
+      <button class="btn" onclick="closeTheme()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EFFACER ── -->
+<div class="modal-bg" id="clearModal">
+  <div class="modal">
+    <div class="modal-title">⚠️ Effacer toutes les données ?</div>
+    <div class="modal-sub">Cette action est irréversible. Toutes vos journées enregistrées seront définitivement supprimées.</div>
+    <div class="modal-btns">
+      <button class="btn btn-danger" style="flex:1" onclick="clearAll()">Confirmer</button>
+      <button class="btn"            style="flex:1" onclick="closeClear()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── MODAL P&L PAR HEURE ── -->
+<div class="modal-bg" id="hoursModal">
+  <div class="modal wide" style="max-width:720px;width:calc(100% - 32px)">
+    <div class="modal-title">P&amp;L par heure d'entrée</div>
+    <div class="modal-sub" style="margin-bottom:12px">Heure de Paris (heure du relevé Ufunded). Chaque trade est rangé à l'heure où tu es entré.</div>
+    <div class="hr-filters">
+      <select id="hrPeriod" onchange="renderHours()">
+        <option value="month">Mois affiché</option>
+        <option value="year">Année affichée</option>
+        <option value="all" selected>Tout l'historique</option>
+        <option value="30">30 derniers jours</option>
+      </select>
+      <select id="hrSym" onchange="renderHours()"></select>
+    </div>
+    <div class="hr-best" id="hrBest"></div>
+    <div class="hr-scroll"><table class="hr-tbl"><thead><tr><th>Heure</th><th class="n">Trades</th><th class="n">Gagnants</th><th class="n">P&amp;L</th><th class="n">Moy./trade</th><th class="bar">Perte ◀ │ ▶ Gain</th></tr></thead><tbody id="hrRows"></tbody></table></div>
+    <div class="modal-btns" style="margin-top:14px"><button class="btn" style="margin-left:auto" onclick="closeHours()">Fermer</button></div>
+  </div>
+</div>
+
+<!-- ── MODAL INDICATEURS ── -->
+<div class="modal-bg" id="indModal">
+  <div class="modal wide" style="max-width:820px;width:calc(100% - 32px)">
+    <div class="modal-title">Indicateurs du compte</div>
+    <div class="modal-sub" style="margin-bottom:12px">Calculés à partir des trades du journal (relevés Ufunded importés).</div>
+    <div class="hr-filters">
+      <select id="indPeriod" onchange="renderInd()">
+        <option value="all" selected>Tout l'historique</option>
+        <option value="year">Année affichée</option>
+        <option value="month">Mois affiché</option>
+        <option value="30">30 derniers jours</option>
+      </select>
+    </div>
+    <div id="indBody"></div>
+    <div class="modal-btns" style="margin-top:14px"><button class="btn" style="margin-left:auto" onclick="document.getElementById('indModal').classList.remove('open')">Fermer</button></div>
+  </div>
+</div>
+
+<!-- ── MODAL RÉGLAGES DRAWDOWN ── -->
+<div class="modal-bg" id="ddModal">
+  <div class="modal">
+    <div class="modal-title">Drawdown maximum</div>
+    <div class="modal-sub">Marge restante = drawdown max − perte nette totale du compte (P&amp;L net total, comme Ufunded). Le solde vient du dernier relevé importé ; tu peux le corriger ici.</div>
+    <label class="gh-field" for="ddCfgSize">Taille du compte ($)</label><input class="gh-input" id="ddCfgSize" type="number" step="0.01">
+    <label class="gh-field" for="ddCfgMax">Drawdown maximum autorisé ($)</label><input class="gh-input" id="ddCfgMax" type="number" step="0.01">
+    <label class="gh-field" for="ddCfgInit">Capital de départ du compte ($) — pour le P&amp;L net total</label><input class="gh-input" id="ddCfgInit" type="number" step="0.01">
+    <label class="gh-field" for="ddCfgBal">Solde actuel ($) — vide = dernier relevé</label><input class="gh-input" id="ddCfgBal" type="number" step="0.01">
+    <div class="modal-btns" style="margin-top:18px">
+      <button class="btn btn-primary" onclick="saveDdCfg()">✓ Enregistrer</button>
+      <button class="btn" style="margin-left:auto" onclick="document.getElementById('ddModal').classList.remove('open')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL RÉGLAGES GITHUB ── -->
+<div class="modal-bg" id="ghModal">
+  <div class="modal wide">
+    <div class="modal-title">Sauvegarde sur GitHub</div>
+    <div class="modal-sub">La page a besoin d'un <b>jeton GitHub</b> pour écrire <b>tradelog.json</b> dans ton dépôt. Il reste uniquement dans ce navigateur. <b>Tes données ne sont jamais perdues</b> si le jeton expire : elles restent ici, il suffit de coller un nouveau jeton.</div>
+    <ol class="gh-steps">
+      <li><a id="ghNewLink" href="#" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">➜ Créer un nouveau jeton (formulaire déjà rempli)</a> — connecte-toi à GitHub si demandé.</li>
+      <li>Vérifie <b>Repository access → Only select repositories → tradelog-</b> et <b>Contents → Read and write</b>, puis <b>Generate token</b>.</li>
+      <li>Copie le jeton (<code>github_pat_…</code>), colle-le ci-dessous, puis <b>Tester</b>.</li>
+    </ol>
+    <label class="gh-field" for="ghToken">Jeton (github_pat_…)</label>
+    <div class="gh-row">
+      <input class="gh-input" id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      <button class="btn gh-mini" type="button" onclick="const i=document.getElementById('ghToken');i.type=i.type==='password'?'text':'password'">👁</button>
+      <button class="btn gh-mini" type="button" onclick="testGhCfg()">🔎 Tester</button>
+    </div>
+    <label class="gh-field" for="ghExp">Date d'expiration du jeton (pour être prévenu avant)</label>
+    <input class="gh-input" id="ghExp" type="date">
+    <label class="gh-field" for="ghRepo">Dépôt</label>
+    <input class="gh-input" id="ghRepo" placeholder="pascalricroch/tradelog-">
+    <div class="imp-status" id="ghCfgStatus"></div>
+    <div class="modal-btns" style="margin-top:18px">
+      <button class="btn btn-primary" onclick="saveGhCfg(true)">✓ Enregistrer et sauvegarder</button>
+      <button class="btn" onclick="saveGhCfg(false)">Enregistrer seulement</button>
+      <button class="btn" onclick="exportData()" title="Télécharge tout le journal en .json (réimportable)">⬇ Copie de secours</button>
+      <button class="btn" style="margin-left:auto" onclick="closeGhCfg()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL MAJ CLAUDE (journal Excel KTA) ── -->
+<div class="modal-bg" id="majModal">
+  <div class="modal wide">
+    <div class="modal-title">🤖 MAJ Claude du journal Excel</div>
+    <div class="modal-sub">Récupère <b>Journal_Trading_KTA_2026_COMPLET_Avril-Novembre.xlsx</b> sur GitHub, ajoute les trades <b>XAU/USD</b> importés avec « Importer Ufunded » qui n'y sont pas encore (analyse + graphique de chaque trade), te le télécharge, puis le publie sur GitHub — comme « Menu → Publier une MAJ du journal Excel ».<br><br>
+    Ordre conseillé : <b>① Importer Ufunded</b> (ton nouveau relevé) → <b>② MAJ Claude</b>.</div>
+    <div class="mc-log" id="mcLog"></div>
+    <div class="modal-btns" style="margin-top:18px">
+      <button class="btn btn-primary" id="mcGo" onclick="majClaude()">🤖 Lancer la MAJ</button>
+      <button class="btn" style="margin-left:auto" onclick="closeMaj()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL IMPORT UFUNDED ── -->
+<div class="modal-bg" id="importModal">
+  <div class="modal wide">
+    <div class="modal-title">Importer un relevé Ufunded</div>
+    <div class="modal-sub" style="margin-bottom:14px">Dépose le PDF « Single-Currency account statement » téléchargé depuis Ufunded. Les P&amp;L sont additionnés jour par jour et ton calendrier est rempli automatiquement. Tes notes sont conservées. Tu peux aussi déposer une sauvegarde .json du journal.</div>
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choisir un relevé">
+      <div class="big">📄</div>
+      <div class="t">Glisse ton relevé ici</div>
+      <div class="s">ou clique pour choisir un fichier · PDF Ufunded ou sauvegarde .json</div>
+    </div>
+    <input type="file" id="importFile" accept=".pdf,.json,application/pdf,application/json" hidden>
+    <div class="imp-status" id="impStatus"></div>
+    <div id="impPreview" hidden>
+      <div class="imp-sum" id="impSum"></div>
+      <label class="imp-opt"><input type="checkbox" id="impKeep"> Ne pas modifier les journées que j'ai déjà saisies (n'ajouter que les nouvelles)</label>
+      <div class="imp-list"><table><thead><tr><th>Jour</th><th class="n">P&amp;L</th><th class="n">Trades</th><th>Symboles</th><th>Statut</th></tr></thead><tbody id="impRows"></tbody></table></div>
+    </div>
+    <div class="gh-ask" id="impGhAsk" hidden>
+      <span style="flex:1">☁ Le journal a changé. <b>Sauvegarder sur GitHub maintenant</b> pour garder l'historique complet en ligne ?</span>
+      <button class="btn btn-primary" onclick="saveToGitHub()">☁ Oui, sauvegarder</button>
+      <button class="btn" onclick="closeImport(); openMaj()">🤖 MAJ Claude de l'Excel</button>
+      <button class="btn" onclick="document.getElementById('impGhAsk').hidden=true">Plus tard</button>
+    </div>
+    <div class="modal-btns" style="margin-top:18px">
+      <button class="btn btn-primary" id="impApply" onclick="applyImport()" hidden>✓ Mettre à jour le journal</button>
+      <button class="btn" id="impUndo" onclick="undoImport()" hidden>↶ Annuler le dernier import</button>
+      <button class="btn" style="margin-left:auto" onclick="closeImport()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONSTANTES
+═══════════════════════════════════════════ */
+const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin',
+              'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JOURS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+
+/* ═══════════════════════════════════════════
+   ÉTAT
+═══════════════════════════════════════════ */
+const now   = new Date();
+let viewY   = now.getFullYear();
+let viewM   = now.getMonth();
+let selDay  = 1;   // jour sélectionné (1 par défaut)
+let selRes  = null;
+
+/* ═══════════════════════════════════════════
+   DONNÉES (localStorage)
+═══════════════════════════════════════════ */
+function getData() { return JSON.parse(localStorage.getItem('tradelog') || '{}'); }
+function putData(d, clean) { localStorage.setItem('tradelog', JSON.stringify(d)); if (!clean) { localStorage.setItem('tradelog_dirty', '1'); if (window.renderGhState) renderGhState(); } }
+function key(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+/* ═══════════════════════════════════════════
+   THÈME
+═══════════════════════════════════════════ */
+function applyTheme(t, btn) {
+  document.body.className = `th-${t}`;
+  localStorage.setItem('tradelog_theme', t);
+  document.querySelectorAll('.theme-pill').forEach(p => p.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  else {
+    const b = document.querySelector(`.theme-pill[data-t="${t}"]`);
+    if (b) b.classList.add('on');
+  }
+}
+// Init thème
+(function() {
+  const t = localStorage.getItem('tradelog_theme') || 'sombre';
+  applyTheme(t, null);
+})();
+
+/* ═══════════════════════════════════════════
+   DRAWER
+═══════════════════════════════════════════ */
+function openDrawer()  { document.getElementById('drawer').classList.add('open'); document.getElementById('drawerMask').classList.add('open'); }
+function closeDrawer() { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerMask').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════ */
+function openTheme()  { document.getElementById('themeModal').classList.add('open'); }
+function closeTheme() { document.getElementById('themeModal').classList.remove('open'); }
+function openClear()  { document.getElementById('clearModal').classList.add('open'); }
+function closeClear() { document.getElementById('clearModal').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════ */
+function fmtVal(v) {
+  const abs = Math.abs(v).toFixed(2).replace('.', ',');
+  return (v >= 0 ? '+' : '-') + '€' + abs;
+}
+function colorOf(v) {
+  return v > 0 ? 'var(--win)' : v < 0 ? 'var(--loss)' : '';
+}
+function setEl(id, txt, color) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = txt;
+  if (color !== undefined) e.style.color = color || '';
+}
+
+function computeStats() {
+  const data = getData();
+
+  /* — mois courant — */
+  let mp = 0, mw = 0, ml = 0, mdays = 0;
+  let mbest = -Infinity, mbestD = null;
+  const dInM = new Date(viewY, viewM + 1, 0).getDate();
+  for (let d = 1; d <= dInM; d++) {
+    const e = data[key(viewY, viewM, d)];
+    if (!e) continue;
+    const a = parseFloat(e.amount) || 0;
+    mdays++;
+    if (e.result === 'win')       { mp += a; mw++; if (a > mbest) { mbest = a; mbestD = d; } }
+    else if (e.result === 'loss') { mp -= Math.abs(a); ml++; }
+    else                          { mw++; /* BE = win rate */ }
+  }
+  const mwr  = (mw + ml) > 0 ? Math.round(mw / (mw + ml) * 100) : 0;
+  const mavg = mdays > 0 ? mp / mdays : 0;
+
+  /* — année — */
+  let yp = 0, yw = 0, yl = 0, ydays = 0;
+  let byv = -Infinity, bym = -1;
+  for (let m = 0; m < 12; m++) {
+    let mv = 0;
+    const dInY = new Date(viewY, m + 1, 0).getDate();
+    for (let d = 1; d <= dInY; d++) {
+      const e = data[key(viewY, m, d)];
+      if (!e) continue;
+      const a = parseFloat(e.amount) || 0;
+      ydays++;
+      if (e.result === 'win')       { yp += a; yw++; mv += a; }
+      else if (e.result === 'loss') { yp -= Math.abs(a); yl++; mv -= Math.abs(a); }
+      else                          { yw++; }
+    }
+    if (mv > byv) { byv = mv; bym = m; }
+  }
+  const ywr = (yw + yl) > 0 ? Math.round(yw / (yw + yl) * 100) : 0;
+
+  /* — mise à jour DOM — */
+  setEl('s-mois',  fmtVal(mp), colorOf(mp));
+  setEl('s-annee', fmtVal(yp), colorOf(yp));
+  setEl('s-wr',    mwr + '%');
+
+  setEl('d-mpnl',    fmtVal(mp), colorOf(mp));
+  setEl('d-mdays',   mdays + ' jours');
+  setEl('d-mwr',     mwr + '%');
+  setEl('d-mwl',     'W:' + mw + ' L:' + ml);
+  setEl('d-mbest',   mbest === -Infinity ? '€0,00' : fmtVal(mbest));
+  setEl('d-mbestd',  mbestD ? JOURS[((new Date(viewY,viewM,mbestD).getDay()+6)%7)].slice(0,3)+' '+mbestD : '—');
+  setEl('d-mavg',    fmtVal(mavg), colorOf(mavg));
+  setEl('d-mavgsub', mdays + ' jours tradés');
+  setEl('d-ypnl',    fmtVal(yp), colorOf(yp));
+  setEl('d-ydays',   ydays + ' jours');
+  setEl('d-ywr',     ywr + '%');
+  setEl('d-ywl',     'W:' + yw + ' L:' + yl);
+  setEl('d-bmonth',  bym >= 0 && byv > -Infinity ? MOIS[bym] : '—');
+  setEl('d-bmonthv', bym >= 0 && byv > -Infinity ? fmtVal(byv) : '€0,00');
+}
+
+/* ═══════════════════════════════════════════
+   CALENDRIER
+═══════════════════════════════════════════ */
+function renderCalendar() {
+  const data = getData();
+  document.getElementById('calMonth').textContent = MOIS[viewM] + ' ' + viewY;
+  {
+    const ym = `${viewY}-${String(viewM + 1).padStart(2, '0')}`;
+    let nT = 0, nW = 0, nJ = 0;
+    for (const k in data) if (k.startsWith(ym)) {
+      nJ++;
+      const T = data[k].trades;
+      if (T && T.length) { nT += T.length; nW += T.filter(t => t.pnl > 0).length; }
+      else if (data[k].source === 'ufunded' && data[k].notes) { const m = data[k].notes.match(/(\d+) trade/); if (m) nT += +m[1]; }
+    }
+    document.getElementById('calMtr').innerHTML = nJ
+      ? `<b>${nT}</b> trade${nT > 1 ? 's' : ''} · ${nJ} jour${nJ > 1 ? 's' : ''} tradé${nJ > 1 ? 's' : ''}${nT ? ` · <b>${Math.round(nW / nT * 100)} %</b> gagnants` : ''}`
+      : '';
+  }
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  const firstDow = (new Date(viewY, viewM, 1).getDay() + 6) % 7; // lun=0
+  const daysInMonth = new Date(viewY, viewM + 1, 0).getDate();
+
+  // cellules vides
+  for (let i = 0; i < firstDow; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const entry   = data[key(viewY, viewM, d)];
+    const isToday = now.getFullYear() === viewY && now.getMonth() === viewM && now.getDate() === d;
+    const isSel   = selDay === d;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell'
+      + (entry  ? ' ' + entry.result : '')
+      + (isToday ? ' today' : '')
+      + (isSel  ? ' active' : '');
+    cell.onclick = () => selectDay(d);
+
+    // numéro
+    const num = document.createElement('div');
+    num.className = 'cell-num';
+    num.textContent = d;
+    cell.appendChild(num);
+
+    // montant
+    if (entry && entry.amount) {
+      const amt = document.createElement('div');
+      amt.className = 'cell-amt';
+      const v = parseFloat(entry.amount) || 0;
+      amt.textContent = (entry.result === 'loss' ? '-' : '+') + Math.abs(v).toFixed(0) + '€';
+      cell.appendChild(amt);
+      if (entry.trades && entry.trades.length) {
+        const n = document.createElement('div'); n.className = 'tr-n';
+        n.textContent = entry.trades.length + ' trade' + (entry.trades.length > 1 ? 's' : '');
+        cell.appendChild(n); cell.title = 'Voir les ' + entry.trades.length + ' trades';
+      }
+    }
+
+    // dot
+    if (entry) {
+      const dot = document.createElement('div');
+      dot.className = 'cell-dot';
+      cell.appendChild(dot);
+    }
+
+    grid.appendChild(cell);
+  }
+
+  computeStats();
+}
+
+function changeMonth(dir) {
+  viewM += dir;
+  if (viewM < 0)  { viewM = 11; viewY--; }
+  if (viewM > 11) { viewM = 0;  viewY++; }
+  selDay = 1; selRes = null;
+  renderCalendar();
+  loadDayForm(selDay);
+}
+
+/* ═══════════════════════════════════════════
+   SAISIE JOURNÉE
+═══════════════════════════════════════════ */
+function selectDay(d) {
+  selDay = d;
+  selRes = null;
+  renderCalendar();
+  loadDayForm(d);
+  if (window.innerWidth < 900) document.querySelector('.entry-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function loadDayForm(d) {
+  // Titre
+  const dow  = (new Date(viewY, viewM, d).getDay() + 6) % 7;
+  const head = JOURS[dow].toUpperCase() + ' ' + d + ' ' + MOIS[viewM].toUpperCase();
+  document.getElementById('entryHead').textContent = head;
+
+  // Charger données existantes
+  const entry = getData()[key(viewY, viewM, d)] || {};
+
+  // Boutons résultat
+  document.querySelectorAll('.res-btn').forEach(b => b.classList.remove('on'));
+  if (entry.result) {
+    selRes = entry.result;
+    document.querySelector('.res-btn.' + entry.result + '-btn').classList.add('on');
+  }
+
+  document.getElementById('fAmt').value    = entry.amount  || '';
+  document.getElementById('fSym').value    = entry.symbols || '';
+  document.getElementById('fNotes').value  = entry.notes   || '';
+  renderDayTrades(entry);
+}
+
+/* ═══════════════════════════════════════════
+   TRADES VISUELS DU JOUR
+═══════════════════════════════════════════ */
+function eur(v) { const r = Number.isInteger(v); return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toLocaleString('fr-FR', { minimumFractionDigits: r ? 0 : 2, maximumFractionDigits: r ? 0 : 2 }) + ' €'; }
+function hm(t) { return t ? t.slice(11, 16) : '—'; }
+function durTxt(a, b) {
+  if (!a || !b) return '';
+  const s = (new Date(b.replace(' ', 'T')) - new Date(a.replace(' ', 'T'))) / 1000;
+  if (s < 60) return Math.round(s) + ' s';
+  if (s < 3600) return Math.round(s / 60) + ' min';
+  if (s < 86400) return Math.floor(s / 3600) + ' h ' + String(Math.round(s % 3600 / 60)).padStart(2, '0');
+  return Math.round(s / 86400) + ' j';
+}
+function renderDayTrades(entry) {
+  const box = document.getElementById('dayTrades');
+  const T = (entry && entry.trades) || [];
+  if (!T.length) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  const tot = T.reduce((a, t) => a + t.pnl, 0), w = T.filter(t => t.pnl > 0).length, l = T.filter(t => t.pnl < 0).length;
+  const best = Math.max(...T.map(t => t.pnl)), worst = Math.min(...T.map(t => t.pnl));
+  // courbe de P&L cumulé
+  const W = 300, H = 70, P = 6; let c = 0; const pts = [0, ...T.map(t => (c += t.pnl))];
+  const mn = Math.min(0, ...pts), mx = Math.max(0, ...pts), rng = mx - mn || 1;
+  const X = i => P + i * (W - 2 * P) / Math.max(1, pts.length - 1), Y = v => H - P - (v - mn) * (H - 2 * P) / rng;
+  const path = pts.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ');
+  const col = tot >= 0 ? 'var(--win)' : 'var(--loss)';
+  const dots = T.map((t, i) => `<circle cx="${X(i + 1).toFixed(1)}" cy="${Y(pts[i + 1]).toFixed(1)}" r="2.6" fill="${t.pnl >= 0 ? 'var(--win)' : 'var(--loss)'}" data-i="${i}" style="cursor:pointer"><title>#${i + 1} ${hm(t.tOut)} ${t.sym} ${eur(t.pnl)}</title></circle>`).join('');
+  const svg = `<svg class="dt-curve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="P&L cumulé de la journée">
+    <line x1="${P}" x2="${W - P}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--border2)" stroke-dasharray="3 3" stroke-width="1"/>
+    <path d="${path}" fill="none" stroke="${col}" stroke-width="1.8" vector-effect="non-scaling-stroke"/>${dots}</svg>`;
+  const cards = T.map((t, i) => {
+    const cls = t.pnl > 0 ? 'win' : t.pnl < 0 ? 'loss' : '';
+    const buy = t.dir === 'Achat';
+    let bar = '';
+    if (t.pIn != null) {
+      const d = t.pOut - t.pIn, good = buy ? d >= 0 : d <= 0, ac = good ? 'var(--win)' : 'var(--loss)';
+      const x1 = d >= 0 ? 4 : 96, x2 = d >= 0 ? 96 : 4;
+      bar = `<div class="dt-bar"><span>${t.pIn}</span><svg viewBox="0 0 100 14" preserveAspectRatio="none"><line x1="${x1}" y1="7" x2="${x2}" y2="7" stroke="${ac}" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="${x1}" cy="7" r="3" fill="var(--txt2)"/><path d="M${x2} 7 L${x2 + (d >= 0 ? -6 : 6)} 3 L${x2 + (d >= 0 ? -6 : 6)} 11 Z" fill="${ac}"/></svg><span>${t.pOut}</span><span>${d >= 0 ? '+' : ''}${(+d.toFixed(2))} pts · ${durTxt(t.tIn, t.tOut)}</span></div>`;
+    }
+    const note = t.note ? `<div class="dt-note">${t.tag ? '<b>' + t.tag + '</b> · ' : ''}${t.note.replace(/[<>&]/g, m => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[m]))}</div>` : '';
+    return `<div class="dt-card ${cls}" data-i="${i}" title="${t.note ? 'Clique pour voir l\'analyse' : ''}">
+      <div class="dt-row1"><span class="t">#${i + 1} ${hm(t.tIn)}→${hm(t.tOut)}</span><span class="sym">${t.sym}</span>
+      <span class="dt-badge ${buy ? 'buy' : 'sell'}">${buy ? '▲ ACHAT' : '▼ VENTE'}</span><span class="t">${t.lots} lot${t.lots > 1 ? 's' : ''}</span>
+      <span class="pnl" style="color:${t.pnl >= 0 ? 'var(--win)' : 'var(--loss)'}">${eur(t.pnl)}</span></div>${bar}
+      ${t.note ? '<div class="hint">▸ analyse</div>' : ''}${note}</div>`;
+  }).join('');
+  box.innerHTML = `<div class="dt-head"><span>Trades du jour · ${T.length}</span><b style="color:${col}">${eur(tot)}</b></div>
+    <div class="dt-kpis">
+      <div class="dt-kpi"><div class="l">Gagnants</div><div class="v" style="color:var(--win)">${w}</div></div>
+      <div class="dt-kpi"><div class="l">Perdants</div><div class="v" style="color:var(--loss)">${l}</div></div>
+      <div class="dt-kpi"><div class="l">Meilleur</div><div class="v" style="color:var(--win)">${eur(Math.round(best))}</div></div>
+      <div class="dt-kpi"><div class="l">Pire</div><div class="v" style="color:var(--loss)">${eur(Math.round(worst))}</div></div>
+    </div>${svg}<div class="dt-list">${cards}</div>`;
+  box.querySelectorAll('.dt-card').forEach(el => el.onclick = () => el.classList.toggle('open'));
+  box.querySelectorAll('circle[data-i]').forEach(el => el.onclick = () => {
+    const card = box.querySelector(`.dt-card[data-i="${el.dataset.i}"]`);
+    box.querySelectorAll('.dt-card.hl').forEach(c => c.classList.remove('hl'));
+    card.classList.add('hl', 'open'); card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+}
+
+function setResult(r) {
+  selRes = r;
+  document.querySelectorAll('.res-btn').forEach(b => b.classList.remove('on'));
+  document.querySelector('.res-btn.' + r + '-btn').classList.add('on');
+}
+
+function saveDay() {
+  if (!selDay) return alert('Sélectionne un jour.');
+  if (!selRes) return alert('Choisis d\'abord un résultat : WIN, LOSS ou BE.');
+  const data = getData();
+  const prev = data[key(viewY, viewM, selDay)] || {};
+  data[key(viewY, viewM, selDay)] = {
+    trades:  prev.trades, source: prev.source,
+    result:  selRes,
+    amount:  document.getElementById('fAmt').value,
+    symbols: document.getElementById('fSym').value,
+    notes:   document.getElementById('fNotes').value,
+    savedAt: new Date().toISOString()
+  };
+  putData(data);
+  renderCalendar();
+}
+
+function deleteDay() {
+  if (!selDay) return;
+  const data = getData();
+  delete data[key(viewY, viewM, selDay)];
+  putData(data);
+  selRes = null;
+  renderCalendar();
+  loadDayForm(selDay);
+}
+
+/* ═══════════════════════════════════════════
+   DÉTAILS TOGGLE
+═══════════════════════════════════════════ */
+let detOpen = false;
+function toggleDetails() {
+  detOpen = !detOpen;
+  document.getElementById('detPanel').classList.toggle('open', detOpen);
+  document.getElementById('det-btn').innerHTML = (detOpen ? '▲' : '▼') + ' &nbsp;Détails';
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════ */
+function exportData() {
+  const json = JSON.stringify(getData(), null, 2);
+  const url  = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'tradelog_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ═══════════════════════════════════════════
+   EFFACER
+═══════════════════════════════════════════ */
+function clearAll() {
+  localStorage.removeItem('tradelog');
+  closeClear();
+  selDay = 1; selRes = null;
+  renderCalendar();
+  loadDayForm(1);
+}
+
+/* ═══════════════════════════════════════════
+   IMPORT UFUNDED — lecture du relevé PDF
+═══════════════════════════════════════════ */
+async function ufPdfLines(pdf) {
+  const lines = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const rows = [];
+    for (const it of tc.items) {
+      if (!it.str || !it.str.trim()) continue;
+      const x = it.transform[4], y = it.transform[5];
+      let r = rows.find(r => Math.abs(r.y - y) < 2.5);
+      if (!r) { r = { y, parts: [] }; rows.push(r); }
+      r.parts.push({ x, s: it.str });
+    }
+    rows.sort((a, b) => b.y - a.y);
+    for (const r of rows) lines.push(r.parts.sort((a, b) => a.x - b.x).map(p => p.s).join(' '));
+  }
+  return lines;
+}
+
+function ufNum(s) {
+  return parseFloat(String(s).replace(/[‑‐−–]/g, '-').replace(/[,\s ]/g, ''));
+}
+function ufSym(s) {
+  return s.replace(/^\./, '').replace('/', '').toUpperCase();
+}
+
+function ufParse(lines) {
+  const norm = l => l.replace(/[‑‐−–]/g, '-').replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+  const L = lines.map(norm);
+  const all = L.join('\n');
+  const out = { trades: [], ops: [], account: null, period: null, created: null, balance: null };
+
+  let m;
+  if ((m = all.match(/Account\s+(\S+)\s+Currency/))) out.account = m[1].replace(/^Ufunded_/, '');
+  if ((m = all.match(/(\d{2} \w{3} \d{4}) \d{2}:\d{2} [—-]+ (\d{2} \w{3} \d{4}) \d{2}:\d{2}/))) out.period = [m[1], m[2]];
+  if ((m = all.match(/Created (\d{2}\/\d{2}\/\d{4} \d{2}:\d{2})/))) out.created = m[1];
+  if ((m = all.match(/Balance\s+(-?[\d,]+\.\d{2})/))) out.balance = ufNum(m[1]);
+
+  const reT = /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2}:\d{2})(?:\.\d+)? (Buy|Sell) ([\d,]+(?:\.\d+)?) (\S+) ([\d,]+(?:\.\d+)?) (\d+) (-?[\d,]+\.\d+|—|-)/;
+  const reO = /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2}) (DEPOSIT|WITHDRAWAL|ADJUSTMENT|TRANSFER\w*) (-?[\d,]+\.\d+)/i;
+  for (const l of L) {
+    if ((m = l.match(reT))) {
+      const pnlRaw = m[10];
+      const closed = pnlRaw !== '—' && pnlRaw !== '-';
+      out.trades.push({
+        day: `${m[3]}-${m[2]}-${m[1]}`, time: m[4], side: m[5], size: ufNum(m[6]),
+        sym: ufSym(m[7]), price: ufNum(m[8]), order: m[9],
+        pnl: closed ? ufNum(pnlRaw) : null
+      });
+    } else if ((m = l.match(reO))) {
+      out.ops.push({ day: `${m[3]}-${m[2]}-${m[1]}`, time: m[4], type: m[5].toUpperCase(), amount: ufNum(m[6]) });
+    }
+  }
+  return out;
+}
+
+// Reconstitue chaque trade : ouverture (P&L vide) + clôture (P&L), dans l'ordre chronologique
+function ufPairTrades(fills) {
+  const F = fills.slice().sort((a, b) => (a.day + a.time).localeCompare(b.day + b.time) || ((a.pnl === null ? 0 : 1) - (b.pnl === null ? 0 : 1)));
+  const open = {}, out = {};
+  for (const f of F) {
+    if (f.pnl === null) { (open[f.sym] = open[f.sym] || []).push(Object.assign({ left: f.size }, f)); continue; }
+    const q = open[f.sym] || [];
+    let i = q.findIndex(o => o.side !== f.side && Math.abs(o.left - f.size) < 1e-6);
+    if (i < 0) i = q.findIndex(o => o.side !== f.side);
+    const o = i >= 0 ? q[i] : null;
+    if (o) { o.left -= f.size; if (o.left <= 1e-6) q.splice(i, 1); }
+    const dir = o ? o.side : (f.side === 'Sell' ? 'Buy' : 'Sell');
+    (out[f.day] = out[f.day] || []).push({
+      sym: f.sym, dir: dir === 'Buy' ? 'Achat' : 'Vente', lots: f.size,
+      tIn: o ? o.day + ' ' + o.time : null, pIn: o ? o.price : null,
+      tOut: f.day + ' ' + f.time, pOut: f.price, pnl: f.pnl
+    });
+  }
+  return out;
+}
+
+function ufDays(trades) {
+  const days = {};
+  for (const t of trades) {
+    const d = days[t.day] || (days[t.day] = { pnl: 0, n: 0, wins: 0, losses: 0, syms: new Set(), lots: 0 });
+    d.syms.add(t.sym);
+    if (t.pnl === null) continue;          // ouverture : pas de P&L
+    d.pnl += t.pnl; d.n++; d.lots += t.size;
+    if (t.pnl > 0) d.wins++; else if (t.pnl < 0) d.losses++;
+  }
+  for (const k in days) {
+    const d = days[k];
+    d.pnl = Math.round(d.pnl * 100) / 100;
+    if (!d.n) delete days[k];
+  }
+  return days;
+}
+
+
+/* ═══════════════════════════════════════════
+   IMPORT — interface
+═══════════════════════════════════════════ */
+const PDFJS_SRC    = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pendingImport = null;
+
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  return new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = PDFJS_SRC;
+    sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; res(window.pdfjsLib); };
+    sc.onerror = () => rej(new Error('Impossible de charger le lecteur PDF (connexion internet ?)'));
+    document.head.appendChild(sc);
+  });
+}
+
+function impStatus(msg, err) {
+  const e = document.getElementById('impStatus');
+  e.textContent = msg || '';
+  e.className = 'imp-status' + (err ? ' err' : '');
+}
+function openImport() {
+  document.getElementById('impGhAsk').hidden = true;
+  document.getElementById('importModal').classList.add('open');
+  document.getElementById('impUndo').hidden = !localStorage.getItem('tradelog_backup');
+}
+function closeImport() {
+  document.getElementById('importModal').classList.remove('open');
+  pendingImport = null;
+  document.getElementById('impPreview').hidden = true;
+  document.getElementById('impApply').hidden = true;
+  impStatus('');
+}
+
+async function handleImportFile(file) {
+  if (!file) return;
+  pendingImport = null;
+  document.getElementById('impPreview').hidden = true;
+  document.getElementById('impApply').hidden = true;
+  try {
+    if (/\.json$/i.test(file.name) || file.type === 'application/json') {
+      const obj = JSON.parse(await file.text());
+      const days = {};
+      for (const k in obj) if (/^\d{4}-\d{2}-\d{2}$/.test(k) && obj[k] && obj[k].result) days[k] = obj[k];
+      if (!Object.keys(days).length) throw new Error('Ce fichier JSON ne contient aucune journée du journal.');
+      pendingImport = { kind: 'json', file: file.name, entries: days };
+    } else {
+      impStatus('Lecture du relevé…');
+      const lib = await loadPdfJs();
+      const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+      const r = ufParse(await ufPdfLines(pdf));
+      if (!r.trades.length) throw new Error('Aucune transaction trouvée. Vérifie que c\'est bien le relevé de compte Ufunded (PDF).');
+      const days = ufDays(r.trades), entries = {}, paired = ufPairTrades(r.trades);
+      for (const k in days) {
+        const d = days[k];
+        entries[k] = {
+          result: d.pnl > 0 ? 'win' : d.pnl < 0 ? 'loss' : 'be',
+          amount: Math.abs(d.pnl).toFixed(2),
+          symbols: [...d.syms].join(', '),
+          trades: d.n, wins: d.wins, losses: d.losses, pnl: d.pnl,
+          list: paired[k] || []
+        };
+      }
+      pendingImport = { kind: 'ufunded', file: file.name, entries, meta: r };
+    }
+    showPreview();
+  } catch (e) {
+    impStatus(e.message || String(e), true);
+  }
+}
+
+function showPreview() {
+  const P = pendingImport, data = getData();
+  const keys = Object.keys(P.entries).sort().reverse();
+  let nNew = 0, nUpd = 0, total = 0, rows = '';
+  for (const k of keys) {
+    const e = P.entries[k], cur = data[k];
+    const v = e.result === 'loss' ? -Math.abs(parseFloat(e.amount)) : Math.abs(parseFloat(e.amount) || 0);
+    total += v;
+    let st;
+    if (!cur) { st = '<span class="tag new">Nouveau</span>'; nNew++; }
+    else if (cur.result === e.result && Math.abs((parseFloat(cur.amount) || 0) - (parseFloat(e.amount) || 0)) < 0.005) st = '<span class="tag">Identique</span>';
+    else { st = '<span class="tag upd">Mis à jour</span>'; nUpd++; }
+    const [y, m, d] = k.split('-');
+    rows += `<tr><td>${d}/${m}/${y}</td><td class="n" style="color:${colorOf(v)}">${fmtVal(v)}</td><td class="n">${e.trades ?? '—'}</td><td>${(e.symbols || '').replace(/[<>&]/g, '')}</td><td>${st}</td></tr>`;
+  }
+  document.getElementById('impRows').innerHTML = rows;
+  const M = P.meta;
+  document.getElementById('impSum').innerHTML =
+    `<div><small>Journées</small><b>${keys.length}</b></div>` +
+    `<div><small>Nouvelles</small><b>${nNew}</b></div>` +
+    `<div><small>Mises à jour</small><b>${nUpd}</b></div>` +
+    `<div><small>P&amp;L total</small><b style="color:${colorOf(total)}">${fmtVal(total)}</b></div>`;
+  impStatus(P.kind === 'ufunded'
+    ? `Compte ${M.account || '?'} · relevé du ${M.period ? M.period.join(' au ') : '?'} · ${M.trades.filter(t => t.pnl !== null).length} trades clôturés · solde ${M.balance != null ? M.balance.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' $' : '?'}`
+    : `Sauvegarde ${P.file}`);
+  document.getElementById('impPreview').hidden = false;
+  document.getElementById('impApply').hidden = false;
+}
+
+function applyImport() {
+  const P = pendingImport;
+  if (!P) return;
+  const keep = document.getElementById('impKeep').checked;
+  const data = getData();
+  localStorage.setItem('tradelog_backup', JSON.stringify(data));
+  const stamp = new Date().toISOString();
+  let n = 0, last = null;
+  for (const k in P.entries) {
+    const e = P.entries[k], cur = data[k];
+    if (cur && keep) continue;
+    if (P.kind === 'json') { data[k] = e; n++; last = !last || k > last ? k : last; continue; }
+    const auto = `Ufunded · ${e.trades} trade${e.trades > 1 ? 's' : ''} (${e.wins} gagnant${e.wins > 1 ? 's' : ''}, ${e.losses} perdant${e.losses > 1 ? 's' : ''})`;
+    const notes = cur && cur.notes && !/^Ufunded · /.test(cur.notes) ? cur.notes : auto;
+    // on garde les commentaires déjà écrits sur chaque trade (même ouverture + même symbole)
+    const oldT = (cur && cur.trades) || [];
+    const list = (e.list || []).map(t => { const o = oldT.find(x => x.sym === t.sym && x.tIn === t.tIn && x.tOut === t.tOut); return o && o.note ? Object.assign({}, t, { note: o.note, tag: o.tag }) : t; });
+    data[k] = { result: e.result, amount: e.amount, symbols: e.symbols, notes, savedAt: stamp, source: 'ufunded', trades: list.length ? list : oldT };
+    n++; last = !last || k > last ? k : last;
+  }
+  putData(data);
+  if (P.kind === 'ufunded') {
+    const M = P.meta;
+    let prevM = null; try { prevM = JSON.parse(localStorage.getItem('tradelog_import') || 'null'); } catch (e) {}
+    const ops = ((prevM && prevM.ops) || []).slice();
+    for (const o of (M.ops || [])) if (!ops.some(x => x.day === o.day && x.time === o.time && x.type === o.type && x.amount === o.amount)) ops.push(o);
+    // un relevé plus ancien ne doit pas écraser le solde du relevé le plus récent
+    const endOf = m => m && m.period ? Date.parse(m.period[1]) || 0 : 0;
+    const newer = !prevM || endOf(M) >= endOf(prevM);
+    const base = newer ? { account: M.account, period: M.period, created: M.created, balance: M.balance } : { account: prevM.account, period: prevM.period, created: prevM.created, balance: prevM.balance };
+    const first = [M.period && M.period[0], prevM && (prevM.first || (prevM.period && prevM.period[0]))].filter(Boolean).sort((x, y) => Date.parse(x) - Date.parse(y))[0];
+    localStorage.setItem('tradelog_import', JSON.stringify(Object.assign(base, { at: stamp, ops, first })));
+  }
+  if (last) { const [y, m] = last.split('-').map(Number); viewY = y; viewM = m - 1; }
+  selRes = null;
+  renderCalendar(); loadDayForm(selDay); renderImportMeta(); renderDD();
+  pendingImport = null;
+  document.getElementById('impApply').hidden = true;
+  document.getElementById('impPreview').hidden = true;
+  document.getElementById('impUndo').hidden = false;
+  impStatus(`✓ ${n} journée${n > 1 ? 's' : ''} mise${n > 1 ? 's' : ''} à jour dans le journal (l'historique existant est conservé et complété).`);
+  document.getElementById('impGhAsk').hidden = false;
+}
+
+function undoImport() {
+  const b = localStorage.getItem('tradelog_backup');
+  if (!b) return;
+  localStorage.setItem('tradelog', b);
+  localStorage.removeItem('tradelog_backup');
+  document.getElementById('impUndo').hidden = true;
+  renderCalendar(); loadDayForm(selDay);
+  impStatus('Dernier import annulé : le journal est revenu à son état précédent.');
+  document.getElementById('impGhAsk').hidden = false;
+}
+
+function renderImportMeta() {
+  const el = document.getElementById('importMeta');
+  let m = null;
+  try { m = JSON.parse(localStorage.getItem('tradelog_import') || 'null'); } catch (e) {}
+  if (!m) { el.innerHTML = ''; return; }
+  const bal = m.balance != null ? m.balance.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $' : '';
+  el.innerHTML = `Ufunded ${m.account || ''} · solde <b>${bal}</b><br>relevé jusqu'au ${m.period ? m.period[1] : '?'}`;
+}
+
+(function initImport() {
+  const dz = document.getElementById('dropzone'), fi = document.getElementById('importFile');
+  dz.onclick = () => fi.click();
+  dz.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); } };
+  fi.onchange = () => { handleImportFile(fi.files[0]); fi.value = ''; };
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
+  dz.ondragleave = () => dz.classList.remove('over');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); handleImportFile(e.dataTransfer.files[0]); };
+  // déposer un fichier n'importe où sur la page ouvre l'import
+  document.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
+  document.addEventListener('drop', e => {
+    if (e.target.closest && e.target.closest('#dropzone')) return;
+    e.preventDefault();
+    const f = e.dataTransfer?.files?.[0];
+    if (f) { openImport(); handleImportFile(f); }
+  });
+  renderImportMeta();
+})();
+
+
+/* ═══════════════════════════════════════════
+   SAUVEGARDE GITHUB — fichier tradelog.json du dépôt
+═══════════════════════════════════════════ */
+const GH_FILE = 'tradelog.json';
+function ghDefaultRepo() {
+  const h = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const seg = location.pathname.split('/').filter(Boolean)[0];
+  return h && seg ? `${h[1]}/${seg}` : 'pascalricroch/tradelog-';
+}
+function ghCfg() { return { token: localStorage.getItem('tradelog_gh_token') || '', repo: localStorage.getItem('tradelog_gh_repo') || ghDefaultRepo() }; }
+function ghB64(str) { const b = new TextEncoder().encode(str); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
+function ghUnB64(b64) { const bin = atob(b64.replace(/\s/g, '')); return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))); }
+
+function renderGhState(msg, cls) {
+  const el = document.getElementById('ghState'), btn = document.getElementById('ghBtn');
+  const dirty = localStorage.getItem('tradelog_dirty') === '1';
+  btn.classList.toggle('dirty', dirty);
+  if (msg) { el.textContent = msg; el.className = 'gh-state ' + (cls || ''); return; }
+  const bad = localStorage.getItem('tradelog_gh_bad');
+  if (bad) { el.textContent = ghErrMsg(+bad, ghCfg().repo); el.className = 'gh-state err'; return; }
+  const left = ghExpDays();
+  if (ghCfg().token && left !== null && left <= 14) {
+    el.textContent = left < 0 ? '🔑 jeton expiré — clique pour le remplacer' : `🔑 jeton expire dans ${left} j — clique pour le renouveler`;
+    el.className = 'gh-state ' + (left < 0 ? 'err' : 'warn'); return;
+  }
+  const at = localStorage.getItem('tradelog_gh_at');
+  const when = at ? new Date(at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : null;
+  if (dirty) { el.textContent = '● modifications non sauvegardées'; el.className = 'gh-state dirty'; }
+  else if (when) { el.textContent = '✓ sauvegardé sur GitHub le ' + when; el.className = 'gh-state ok'; }
+  else { el.textContent = ''; el.className = 'gh-state'; }
+}
+
+// Lien de création d'un jeton déjà rempli (nom, compte, 1 an, Contents : écriture)
+function ghNewTokenUrl() {
+  const owner = (ghCfg().repo.split('/')[0]) || 'PascalRICROCH';
+  const q = new URLSearchParams({ name: 'tradelog-journal-' + new Date().toISOString().slice(0, 10), description: 'Sauvegarde du Journal de Compte', target_name: owner, expires_in: '366', contents: 'write' });
+  return 'https://github.com/settings/personal-access-tokens/new?' + q.toString();
+}
+// Nettoie un jeton collé (espaces, guillemets, « Bearer », retours à la ligne)
+function ghClean(t) { return (t || '').replace(/^\s*(Bearer|token)\s+/i, '').replace(/["'`\s]/g, ''); }
+function ghExpDays() {
+  const e = localStorage.getItem('tradelog_gh_exp'); if (!e) return null;
+  return Math.ceil((Date.parse(e + 'T23:59:59') - Date.now()) / 864e5);
+}
+// Message clair pour chaque code d'erreur GitHub
+function ghErrMsg(status, repo) {
+  if (status === 401) return '🔑 Jeton expiré ou incorrect — clique ici pour en coller un nouveau';
+  if (status === 403) return '🔑 Le jeton n\'a pas le droit d\'écrire (Contents : Read and write)';
+  if (status === 404) return '🔑 Le jeton ne donne pas accès au dépôt ' + repo;
+  if (status === 409 || status === 422) return 'Conflit : réessaie dans quelques secondes';
+  return 'GitHub ' + status;
+}
+function ghAuthErr(status) { return status === 401 || status === 403 || status === 404; }
+
+function openGhCfg(msg) {
+  const c = ghCfg();
+  document.getElementById('ghToken').value = c.token;
+  document.getElementById('ghToken').type = 'password';
+  document.getElementById('ghRepo').value = c.repo;
+  document.getElementById('ghExp').value = localStorage.getItem('tradelog_gh_exp') || '';
+  document.getElementById('ghNewLink').href = ghNewTokenUrl();
+  const st = document.getElementById('ghCfgStatus');
+  st.innerHTML = typeof msg === 'string' ? '<span class="gh-ko">' + msg + '</span><br>Tes données sont en sécurité dans ce navigateur.' : '';
+  document.getElementById('ghModal').classList.add('open');
+}
+
+// Vérifie le jeton sans rien écrire
+async function testGhCfg() {
+  const st = document.getElementById('ghCfgStatus');
+  const t = ghClean(document.getElementById('ghToken').value), r = document.getElementById('ghRepo').value.trim() || ghDefaultRepo();
+  document.getElementById('ghToken').value = t;
+  if (!t) { st.innerHTML = '<span class="gh-ko">Colle d\'abord un jeton.</span>'; return; }
+  if (!/^(github_pat_|ghp_)/.test(t)) { st.innerHTML = '<span class="gh-wa">⚠ Ce texte ne ressemble pas à un jeton GitHub (il doit commencer par github_pat_).</span>'; return; }
+  st.textContent = '⏳ Test en cours…';
+  try {
+    const res = await fetch(`https://api.github.com/repos/${r}`, { headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + t }, cache: 'no-store' });
+    if (!res.ok) { st.innerHTML = '<span class="gh-ko">✗ ' + ghErrMsg(res.status, r).replace(' — clique ici pour en coller un nouveau', '') + '</span>'; return; }
+    const exp = res.headers.get('github-authentication-token-expiration');
+    if (exp) { const d = exp.slice(0, 10); document.getElementById('ghExp').value = d; }
+    st.innerHTML = '<span class="gh-ok">✓ Jeton valide pour ' + r + '.</span> Clique sur « Enregistrer et sauvegarder ».';
+  } catch (e) { st.innerHTML = '<span class="gh-ko">✗ Pas de connexion à GitHub (' + (e.message || e) + ')</span>'; }
+}
+function closeGhCfg() { document.getElementById('ghModal').classList.remove('open'); }
+function saveGhCfg(andSave) {
+  const t = ghClean(document.getElementById('ghToken').value), r = document.getElementById('ghRepo').value.trim() || ghDefaultRepo();
+  const old = localStorage.getItem('tradelog_gh_token') || '';
+  if (t) localStorage.setItem('tradelog_gh_token', t); else localStorage.removeItem('tradelog_gh_token');
+  localStorage.setItem('tradelog_gh_repo', r);
+  let exp = document.getElementById('ghExp').value;
+  if (t && t !== old && !exp) { const d = new Date(Date.now() + 366 * 864e5); exp = d.toISOString().slice(0, 10); }
+  if (exp) localStorage.setItem('tradelog_gh_exp', exp); else localStorage.removeItem('tradelog_gh_exp');
+  localStorage.removeItem('tradelog_gh_bad');
+  renderGhState();
+  closeGhCfg();
+  if (andSave) saveToGitHub();
+}
+
+async function ghGetFile(c) {
+  const h = { Accept: 'application/vnd.github+json' };
+  if (c.token) h.Authorization = 'Bearer ' + c.token;
+  const r = await fetch(`https://api.github.com/repos/${c.repo}/contents/${GH_FILE}?t=${Date.now()}`, { headers: h, cache: 'no-store' });
+  if (r.status === 404) return null;
+  if (!r.ok) { const e = new Error(ghErrMsg(r.status, c.repo)); e.status = r.status; throw e; }
+  const j = await r.json();
+  return { sha: j.sha, obj: JSON.parse(ghUnB64(j.content)) };
+}
+
+function ghMerge(localDays, remoteDays) {
+  // on garde chaque journée ; en cas de conflit, la plus récente (savedAt) gagne
+  const out = Object.assign({}, remoteDays);
+  for (const k in localDays) {
+    const a = localDays[k], b = out[k];
+    if (!b || (a.savedAt || '') >= (b.savedAt || '')) out[k] = a;
+  }
+  return out;
+}
+
+async function saveToGitHub() {
+  const c = ghCfg();
+  if (!c.token) { openGhCfg('Colle ton jeton GitHub pour activer la sauvegarde.'); return; }
+  const btn = document.getElementById('ghBtn');
+  btn.disabled = true; renderGhState('⏳ sauvegarde en cours…');
+  try {
+    let remote = null;
+    try { remote = await ghGetFile(c); } catch (e) { if (ghAuthErr(e.status) && e.status !== 404) throw e; }
+    // complète l'historique : fusion avec ce qui est déjà sur GitHub
+    const days = ghMerge(getData(), remote && remote.obj && remote.obj.days ? remote.obj.days : {});
+    let imp = null; try { imp = JSON.parse(localStorage.getItem('tradelog_import') || 'null'); } catch (e) {}
+    const payload = { version: 1, updatedAt: new Date().toISOString(), import: mergeImportMeta(imp, remote && remote.obj && remote.obj.import) || null, account: ddCfg(), days };
+    const body = { message: `Journal : sauvegarde du ${new Date().toLocaleString('fr-FR')} (${Object.keys(days).length} journées)`, content: ghB64(JSON.stringify(payload, null, 2)) };
+    if (remote) body.sha = remote.sha;
+    const r = await fetch(`https://api.github.com/repos/${c.repo}/contents/${GH_FILE}`, {
+      method: 'PUT', headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + c.token, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      const e = new Error(ghErrMsg(r.status, c.repo) + (ghAuthErr(r.status) || r.status === 409 ? '' : ' : ' + t.slice(0, 120))); e.status = r.status; throw e;
+    }
+    putData(days, true);
+    localStorage.removeItem('tradelog_dirty');
+    localStorage.setItem('tradelog_gh_at', payload.updatedAt);
+    renderCalendar(); loadDayForm(selDay);
+    localStorage.removeItem('tradelog_gh_bad');
+    renderGhState();
+    const ask = document.getElementById('impGhAsk'); if (ask) ask.hidden = true;
+    const st = document.getElementById('impStatus'); if (st && document.getElementById('importModal').classList.contains('open')) impStatus(`☁ Sauvegardé sur GitHub : ${Object.keys(days).length} journées dans ${GH_FILE}.`);
+  } catch (e) {
+    if (ghAuthErr(e.status)) { localStorage.setItem('tradelog_gh_bad', String(e.status)); renderGhState(); openGhCfg(e.message.replace(' — clique ici pour en coller un nouveau', '')); }
+    else renderGhState('✗ ' + (e.message || e) + ' (tes données restent ici)', 'err');
+  } finally { btn.disabled = false; }
+}
+
+// ── Journal Excel KTA : téléchargement + publication sur GitHub
+const XL_FILE = 'Journal_Trading_KTA_2026_COMPLET_Avril-Novembre.xlsx';
+async function renderXlsx() {
+  const a = document.getElementById('xlDl'), w = document.getElementById('xlWhen'); if (!a) return;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${ghCfg().repo}/commits?path=${encodeURIComponent(XL_FILE)}&per_page=1`, { cache: 'no-store' });
+    const j = r.ok ? await r.json() : [];
+    if (!j.length) { w.textContent = '· pas encore publié'; return; }
+    const d = new Date(j[0].commit.committer.date);
+    w.textContent = '· MAJ du ' + d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    a.href = XL_FILE + '?v=' + j[0].sha.slice(0, 7);   // évite l'ancienne version en cache
+  } catch (e) {}
+}
+async function uploadXlsx(f) {
+  if (!f) return false;
+  const c = ghCfg();
+  if (!c.token) { openGhCfg('Colle ton jeton GitHub pour publier le fichier Excel.'); return false; }
+  const w = document.getElementById('xlWhen'); w.textContent = '· ⏳ envoi de ' + (f.size / 1048576).toFixed(1) + ' Mo…';
+  try {
+    const b64 = await new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = ko; r.readAsDataURL(f); });
+    const H = { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + c.token };
+    let sha = null;
+    const ls = await fetch(`https://api.github.com/repos/${c.repo}/contents/?t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (ls.status === 401 || ls.status === 403) { const e = new Error(ghErrMsg(ls.status, c.repo)); e.status = ls.status; throw e; }
+    if (ls.ok) { const it = (await ls.json()).find(x => x.name === XL_FILE); if (it) sha = it.sha; }
+    const body = { message: `Journal Excel KTA : MAJ du ${new Date().toLocaleString('fr-FR')}`, content: b64 }; if (sha) body.sha = sha;
+    const r = await fetch(`https://api.github.com/repos/${c.repo}/contents/${encodeURIComponent(XL_FILE)}`, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify(body) });
+    if (!r.ok) { const e = new Error(ghErrMsg(r.status, c.repo)); e.status = r.status; throw e; }
+    w.textContent = '· ✓ publié (dispo dans ~1 min)';
+    setTimeout(renderXlsx, 60000);
+    return true;
+  } catch (e) {
+    if (ghAuthErr(e.status)) { localStorage.setItem('tradelog_gh_bad', String(e.status)); renderGhState(); openGhCfg(e.message.replace(' — clique ici pour en coller un nouveau', '')); }
+    w.textContent = '· ✗ envoi impossible (' + (e.message || e) + ') — dépose-le via GitHub → Add file → Upload files';
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════
+//   🤖 MAJ CLAUDE — met à jour le journal Excel KTA dans le navigateur
+//   1) télécharge l'Excel depuis GitHub  2) ajoute les trades XAUUSD importés (Ufunded)
+//   absents de l'Excel (analyse + graphique)  3) le télécharge et le publie sur GitHub
+// ═══════════════════════════════════════════
+const MC_SYM = 'XAUUSD', MC_YEAR = 2026;
+const MC_MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MC_NSR = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const MC_FORM = r => `IF($G${r}="","",IF(LEFT($G${r},2)="TP",ABS($H${r}),IF($G${r}="SL",-ABS($H${r}),0)))`;
+const mcEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const mcUnesc = s => String(s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+const mcFr = (x, d = 2) => (x >= 0 ? '+' : '') + x.toFixed(d).replace('.', ',');
+const mcPad = n => String(n).padStart(2, '0');
+const mcKey = d => `${d.getUTCFullYear()}-${mcPad(d.getUTCMonth() + 1)}-${mcPad(d.getUTCDate())}T${mcPad(d.getUTCHours())}:${mcPad(d.getUTCMinutes())}`;
+
+function mcLog(msg, cls) {
+  const el = document.getElementById('mcLog');
+  const line = document.createElement('div'); line.textContent = msg; if (cls) line.className = cls;
+  el.appendChild(line); el.scrollTop = el.scrollHeight;
+}
+function openMaj() {
+  document.getElementById('mcLog').innerHTML = '';
+  document.getElementById('mcGo').disabled = false;
+  document.getElementById('majModal').classList.add('open');
+}
+function closeMaj() { document.getElementById('majModal').classList.remove('open'); }
+
+function mcLoadJSZip() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    sc.onload = () => res(window.JSZip); sc.onerror = () => rej(new Error('JSZip introuvable (connexion ?)'));
+    document.head.appendChild(sc);
+  });
+}
+
+// Heure de Paris « AAAA-MM-JJ HH:MM:SS » → Date UTC (gère heure d'été / d'hiver)
+function mcParis(s) {
+  const [d, t] = s.split(' '); const [Y, M, D] = d.split('-').map(Number); const [h, m, sec] = t.split(':').map(Number);
+  const guess = Date.UTC(Y, M - 1, D, h, m, sec || 0);
+  const f = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const p = Object.fromEntries(f.formatToParts(new Date(guess)).map(x => [x.type, x.value]));
+  const asParis = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  return new Date(guess - (asParis - guess));
+}
+const mcParisHM = d => new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' }).format(d);
+
+// ── trades XAUUSD du journal (sorties partielles regroupées)
+function mcTrades(minDate) {
+  const D = getData(), raw = [];
+  Object.keys(D).sort().forEach(day => {
+    if (day < minDate || !day.startsWith(String(MC_YEAR))) return;
+    (D[day].trades || []).forEach(t => { if (t.sym === MC_SYM && t.tIn && t.tOut && t.pIn != null) raw.push(t); });
+  });
+  raw.sort((a, b) => a.tIn < b.tIn ? -1 : 1);
+  const g = [];
+  raw.forEach(t => { const l = g[g.length - 1]; if (l && l.tIn === t.tIn && l.pIn === t.pIn) l.parts.push(t); else g.push(Object.assign({}, t, { parts: [t] })); });
+  return g.map(a => {
+    const P = a.parts, lots = +P.reduce((s, p) => s + p.lots, 0).toFixed(2);
+    const buy = /^(a|b)/i.test(a.dir || a.side || ''), s = buy ? 1 : -1;
+    const pout = P.reduce((x, p) => x + p.pOut * p.lots, 0) / lots, pnl = +P.reduce((x, p) => x + p.pnl, 0).toFixed(2);
+    const pts = pnl === 0 ? 0 : +((pout - a.pIn) * s).toFixed(2);
+    return { day: a.tIn.slice(0, 10), tIn: a.tIn, tOut: P.map(p => p.tOut).sort().pop(), buy, s, lots, pnl, pIn: a.pIn, pOut: +pout.toFixed(2), pts, R: pts / 5, n: P.length };
+  });
+}
+
+// ── bougies 1 min : or tokenisé PAXG (Binance, données publiques), recalé sur les prix d'entrée
+async function mcCandles(trades) {
+  const C = {}, days = [...new Set(trades.map(t => t.day))];
+  for (const day of days) {
+    const T = trades.filter(t => t.day === day);
+    const from = Math.min(...T.map(t => mcParis(t.tIn).getTime())) - 40 * 60e3;
+    const to = Math.max(...T.map(t => mcParis(t.tOut).getTime())) + 45 * 60e3;
+    const tmp = {};
+    try {
+      for (let st = from; st < to; st += 1000 * 60e3) {
+        let rows = null;
+        for (const host of ['https://data-api.binance.vision', 'https://api.binance.com']) {
+          try { const r = await fetch(`${host}/api/v3/klines?symbol=PAXGUSDT&interval=1m&startTime=${st}&endTime=${Math.min(to, st + 1000 * 60e3)}&limit=1000`); if (r.ok) { rows = await r.json(); break; } } catch (e) {}
+        }
+        (rows || []).forEach(k => tmp[mcKey(new Date(k[0]))] = { open: +k[1], high: +k[2], low: +k[3], close: +k[4] });
+      }
+    } catch (e) {}
+    const diffs = T.map(t => { const b = tmp[mcKey(mcParis(t.tIn))]; return b ? t.pIn - b.close : null; }).filter(x => x != null).sort((a, b) => a - b);
+    const off = diffs.length ? diffs[Math.floor(diffs.length / 2)] : 0;
+    Object.entries(tmp).forEach(([k, b]) => C[k] = { open: b.open + off, high: b.high + off, low: b.low + off, close: b.close + off });
+    mcLog(`  ${day} : ${Object.keys(tmp).length} bougies 1 min${Object.keys(tmp).length ? ` (recalage ${off >= 0 ? '+' : ''}${off.toFixed(2)} $)` : ' — analyse réduite'}`);
+  }
+  return C;
+}
+
+// ── analyse (colonne K) — mêmes règles que les MAJ précédentes
+function mcAnalyse(trades, C) {
+  const bar = d => C[mcKey(d)]; const M = 60e3;
+  let prev = null, day = null, streak = 0;
+  for (const t of trades) {
+    if (t.day !== day) { day = t.day; streak = 0; prev = null; }
+    const R = t.R;
+    const res = R >= 3 ? 'TP3' : R >= 2 ? 'TP2' : R > 0 ? 'TP1' : t.pnl === 0 ? 'BE' : 'SL';
+    const tin = mcParis(t.tIn), tout = mcParis(t.tOut), m0 = new Date(Math.floor(tin / M) * M);
+    const dur = Math.max(1, Math.round((tout - tin) / M));
+    const Rs = t.pnl === 0 ? '0' : (Math.abs(R) < 0.1 ? mcFr(R, 2) : mcFr(R, 1));
+    const lot = `${+t.lots} lot${t.lots > 1 ? 's' : ''}`;
+    const txt = [`Entrée ${t.tIn.slice(11, 16)} @ ${t.pIn.toFixed(2)} → sortie ${t.tOut.slice(11, 16)} @ ${t.pOut.toFixed(2)} (${t.pts ? mcFr(t.pts) : '0,00'} $ = ${Rs}R, ${lot}, ${dur} min).`];
+    if (t.n > 1) txt.push(`Sortie en ${t.n} fois (partielles).`);
+    streak = res === 'SL' ? streak + 1 : 0;
+    if (res === 'SL' && streak >= 3) txt.push(`${streak}e perte d'affilée dans la journée : la règle « 2 pertes = pause 30 min » aurait évité ce trade.`);
+    if (prev && prev.pnl < 0 && (tin - mcParis(prev.tOut)) <= 180e3)
+      txt.push(prev.buy === t.buy ? 'Ré-entrée immédiate dans le même sens juste après une perte.' : 'Trade inversé juste après une perte (revenge trade).');
+    const b0 = bar(new Date(m0 - 15 * M)), b1 = bar(new Date(m0 - M));
+    if (b0 && b1) {
+      const mv = b1.close - b0.close;
+      if (Math.abs(mv) < 3) txt.push("Marché en range avant l'entrée.");
+      else if ((mv > 0) === t.buy) txt.push(`Entrée dans le sens de la tendance (${mv > 0 ? 'hausse' : 'baisse'} de ${Math.abs(mv).toFixed(0)} $ sur 15 min).`);
+      else txt.push(`Entrée à contre-tendance (${t.buy ? 'achat' : 'vente'} alors que le prix était en ${mv > 0 ? 'hausse' : 'baisse'} de ${Math.abs(mv).toFixed(0)} $ sur 15 min).`);
+    }
+    if (res === 'TP1' && R < 1) txt.push('Sortie manuelle avant TP1 (classé TP1 pour le calcul).');
+    else if (res === 'TP1') txt.push(`Sortie à ${mcFr(R, 1)}R.`);
+    else if (res === 'TP2' || res === 'TP3') txt.push(`Excellent trade (${mcFr(R, 1)}R) : setup à reproduire.`);
+    else if (res === 'BE') txt.push('Sortie à zéro (BE).');
+    else if (R > -0.8) txt.push('Sortie manuelle avant le SL.');
+    else if (R <= -1.5) txt.push(`Perte de ${mcFr(R, 1)}R : le stop de 5 $ n'a pas été respecté, la perte a couru.`);
+    else txt.push('Stop touché.');
+    const mout = Math.floor(tout / M) * M, after = [];
+    for (let i = 1; i <= 30; i++) { const b = bar(new Date(mout + i * M)); if (b) after.push(b); }
+    if (after.length) {
+      const best = t.buy ? Math.max(...after.map(x => x.high)) : Math.min(...after.map(x => x.low));
+      if (res !== 'SL') { const ext = (best - t.pOut) * t.s; if (ext >= 2) txt.push(`Le prix a encore avancé de ${ext.toFixed(1).replace('.', ',')} $ dans ton sens après la sortie : gain coupé trop tôt.`); }
+      else if ((best - t.pIn) * t.s >= 5) txt.push('Le prix est reparti dans ton sens après le stop : entrée trop tôt ou stop trop serré.');
+    }
+    if (t.lots <= 0.05) txt.push(`Très petite taille (${+t.lots} lot).`);
+    const inb = []; for (let x = +m0; x <= +tout; x += M) { const b = bar(new Date(x)); if (b) inb.push(b); }
+    const mfe = inb.length && dur > 1 ? Math.max(...inb.map(x => ((t.buy ? x.high : x.low) - t.pIn) * t.s)) : Math.max(t.pts, 0);
+    const hm = mcParisHM(tin).split(':').map(Number), mins = hm[0] * 60 + hm[1];
+    Object.assign(t, { res, dur, text: txt.join(' '),
+      lvl: mfe >= 15 ? 'TP3' : mfe >= 10 ? 'TP2' : mfe >= 5 ? 'TP1' : mfe >= 2.5 ? 'BE' : 'aucun',
+      ses: hm[0] < 9 || hm[0] >= 22 ? 'Asie' : (mins < 14 * 60 + 30 ? 'EU' : 'US') });
+    prev = t;
+  }
+}
+
+// ── graphique 909×588 (colonne L)
+function mcChart(t, n, mois, C) {
+  const W = 909, H = 588, L = 20, Rr = 800, Tp = 150, B = 535, M = 60e3;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  const tin = mcParis(t.tIn), tout = mcParis(t.tOut);
+  const t0 = Math.floor(tin / M) * M - 22 * M, t1 = Math.floor(tout / M) * M + 10 * M;
+  const bars = []; for (let k = t0; k <= t1; k += M) { const b = C[mcKey(new Date(k))]; if (b) bars.push([k, b]); }
+  const s = t.s, e = t.pIn, GR = '#1f8a5b', RD = '#c8473b', YL = '#b07d0a';
+  const lv = [['SL', e - 5 * s, RD], ['BE', e + 2.5 * s, GR], ['TP1', e + 5 * s, GR], ['TP2', e + 10 * s, GR]];
+  if (t.lvl === 'TP3' || t.res === 'TP3') lv.push(['TP3', e + 15 * s, GR]);
+  const oc = t.pnl > 0 ? GR : t.pnl < 0 ? RD : '#6b7280';
+  const ys = bars.flatMap(([, b]) => [b.high, b.low]).concat(lv.map(x => x[1]), [e, t.pOut]);
+  let lo = Math.min(...ys), hi = Math.max(...ys); const pad = (hi - lo) * 0.06 + 0.3; lo -= pad; hi += pad;
+  const Y = p => Tp + (hi - p) / (hi - lo) * (B - Tp);
+  const nb = Math.max(1, Math.round((t1 - t0) / M) + 1), step = (Rr - L - 175) / nb;
+  const X = k => L + step * ((k - t0) / M + 0.5);
+  const mono = sz => `${sz}px Menlo, Consolas, monospace`;
+  // grille
+  const rng = hi - lo, gs = rng < 40 ? 5 : rng < 90 ? 10 : 20;
+  g.font = mono(13); g.fillStyle = '#6b7280'; g.strokeStyle = '#eceef1'; g.lineWidth = 1;
+  for (let v = Math.ceil(lo / gs) * gs; v < hi; v += gs) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(Rr, Y(v)); g.stroke(); g.fillText(v.toFixed(0), Rr + 14, Y(v) + 5); }
+  const xa = X(Math.floor(tin / M) * M) - step / 2, xb = X(t1) + step * 0.8;
+  const zone = (p1, p2, col) => { g.globalAlpha = .16; g.fillStyle = col; g.fillRect(xa, Math.min(Y(p1), Y(p2)), xb - xa, Math.abs(Y(p1) - Y(p2))); g.globalAlpha = 1; };
+  zone(e, e - 5 * s, RD); zone(e, lv[lv.length - 1][1], GR);
+  bars.forEach(([k, b]) => {
+    const col = b.close >= b.open ? '#26a17b' : '#d9534f', x = X(k);
+    g.strokeStyle = col; g.lineWidth = 1.3; g.beginPath(); g.moveTo(x, Y(b.high)); g.lineTo(x, Y(b.low)); g.stroke();
+    const y1 = Y(Math.max(b.open, b.close)), y2 = Y(Math.min(b.open, b.close));
+    g.fillStyle = col; g.fillRect(x - step * .35, y1, step * .7, Math.max(y2 - y1, 1.2));
+  });
+  if (!bars.length) { g.fillStyle = '#9aa1ab'; g.font = '14px Helvetica, Arial'; g.fillText('bougies indisponibles', L + 60, (Tp + B) / 2); }
+  const line = (p, col, dash) => { g.strokeStyle = col; g.lineWidth = 2; g.setLineDash(dash ? [6, 4] : []); g.beginPath(); g.moveTo(xa, Y(p)); g.lineTo(xb, Y(p)); g.stroke(); g.setLineDash([]); };
+  const labs = [];
+  lv.forEach(([nm, p, col]) => { line(p, col); labs.push([Y(p) + 5, `${nm} ${p.toFixed(2)}`, col]); });
+  line(e, YL); labs.push([Y(e) + 5, `ENTRÉE ${t.buy ? '▲' : '▼'} ${e.toFixed(2)}`, YL]);
+  line(t.pOut, oc, true); labs.push([Y(t.pOut) + 5, `SORTIE ${t.pOut.toFixed(2)}`, oc]);
+  const xo = X(Math.floor(tout / M) * M); g.fillStyle = oc; g.strokeStyle = '#fff'; g.lineWidth = 2;
+  g.beginPath(); g.arc(xo, Y(t.pOut), 5.5, 0, 7); g.fill(); g.stroke();
+  labs.sort((a, b) => a[0] - b[0]);
+  for (let it = 0; it < 30; it++) for (let i = 0; i < labs.length - 1; i++) { const d = labs[i + 1][0] - labs[i][0]; if (d < 17) { labs[i][0] -= (17 - d) / 2; labs[i + 1][0] += (17 - d) / 2; } }
+  g.font = 'bold ' + mono(14); labs.forEach(([y, tx, col]) => { g.fillStyle = col; g.fillText(tx, xb + 10, y); });
+  g.font = mono(13); g.fillStyle = '#6b7280'; g.textAlign = 'center';
+  for (let k = t0, i = 0; k <= t1; k += M, i++) if (i % 10 === 0) g.fillText(mcParisHM(new Date(k)), X(k), B + 22);
+  g.textAlign = 'left';
+  const sign = t.pnl > 0 ? '+' : t.pnl < 0 ? '-' : '';
+  const amt = Math.abs(t.pnl) >= 1 || t.pnl === 0 ? Math.round(Math.abs(t.pnl)).toLocaleString('fr-FR') : Math.abs(t.pnl).toFixed(2);
+  const [Yd, Md, Dd] = t.day.split('-');
+  g.font = '600 19px Inter, Helvetica, Arial'; g.fillStyle = '#1d2330';
+  g.fillText(`${mois} #${n} · ${t.buy ? 'Long' : 'Short'} · ${Dd}/${Md} · ${+t.lots} lot${t.lots > 1 ? 's' : ''}`, 20, 38);
+  g.font = mono(19); g.fillStyle = oc; g.textAlign = 'right'; g.fillText(sign + amt, W - 20, 38); g.textAlign = 'left';
+  g.font = mono(15); g.fillStyle = '#6b7280';
+  g.fillText(`${t.tIn.slice(11, 16)} @ ${t.pIn.toFixed(2)} → ${t.tOut.slice(11, 16)} @ ${t.pOut.toFixed(2)} (${t.pts >= 0 ? '+' : ''}${t.pts.toFixed(2)} pts = ${t.pnl === 0 ? '0' : (t.R >= 0 ? '+' : '') + t.R.toFixed(1)} R) · niveau max atteint : ${t.lvl}`, 20, 68);
+  const lab = `${t.pnl > 0 ? 'GAIN' : t.pnl < 0 ? 'PERTE' : 'BE'} ${sign}${amt} (${t.pts >= 0 ? '+' : ''}${t.pts.toFixed(2)} $)`;
+  g.font = 'bold ' + mono(16); const bw = g.measureText(lab).width + 24;
+  g.fillStyle = oc; g.beginPath(); (g.roundRect ? g.roundRect(36, 106, bw, 32, 5) : g.rect(36, 106, bw, 32)); g.fill();
+  g.fillStyle = '#fff'; g.fillText(lab, 48, 128);
+  return new Promise(res => cv.toBlob(b => res(b), 'image/jpeg', 0.88));
+}
+
+// ── classeur Excel (modifié au niveau XML : images, graphiques et mises en forme conservés)
+async function mcBook(zip) {
+  const rd = p => zip.file(p).async('string');
+  const wb = await rd('xl/workbook.xml'), rels = await rd('xl/_rels/workbook.xml.rels');
+  const tgt = {}; for (const m of rels.matchAll(/<Relationship [^>]*>/g)) { const id = /Id="([^"]+)"/.exec(m[0]), tg = /Target="([^"]+)"/.exec(m[0]); if (id && tg) tgt[id[1]] = tg[1]; }
+  const sheets = {}; for (const m of wb.matchAll(/<sheet name="([^"]+)"[^>]*r:id="([^"]+)"/g)) sheets[mcUnesc(m[1])] = 'xl/' + tgt[m[2]].replace(/^\/?(xl\/)?/, '');
+  const sst = []; const sf = zip.file('xl/sharedStrings.xml');
+  if (sf) for (const m of (await sf.async('string')).matchAll(/<si>([\s\S]*?)<\/si>/g)) sst.push(mcUnesc([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x => x[1]).join('')));
+  return { zip, rd, sheets, sst };
+}
+function mcRows(s) { const o = {}; for (const m of s.matchAll(/<row r="(\d+)"[^>]*?(?:\/>|>[\s\S]*?<\/row>)/g)) o[+m[1]] = m[0]; return o; }
+function mcCell(bk, row, ref) {
+  const m = new RegExp(`<c r="${ref}"([^>]*?)(?:/>|>([\\s\\S]*?)</c>)`).exec(row); if (!m || !m[2]) return null;
+  if (/t="s"/.test(m[1])) return bk.sst[+(/<v>(\d+)<\/v>/.exec(m[2]) || [])[1]];
+  if (/t="inlineStr"/.test(m[1])) return mcUnesc([...m[2].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x => x[1]).join(''));
+  const v = /<v>([^<]*)<\/v>/.exec(m[2]); return v ? v[1] : null;
+}
+async function mcExisting(bk) {
+  const keys = new Set(); let last = '';
+  for (const nm of MC_MOIS) {
+    if (!bk.sheets[nm]) continue; const R = mcRows(await bk.rd(bk.sheets[nm]));
+    for (const r in R) {
+      if (+r < 6) continue;
+      const k = mcCell(bk, R[r], 'K' + r), b = mcCell(bk, R[r], 'B' + r), m = /Entrée (\d\d:\d\d) @ ([\d.]+)/.exec(k || '');
+      if (m && b && /^\d+(\.0+)?$/.test(b)) {
+        const d = new Date(Date.UTC(1899, 11, 30) + Math.round(+b) * 864e5).toISOString().slice(0, 10);
+        keys.add(`${d}|${m[1]}|${(+m[2]).toFixed(2)}`); if (d > last) last = d;
+      }
+    }
+  }
+  return { keys, last };
+}
+async function mcDrawing(bk, sheetPath) {
+  const z = bk.zip, dir = sheetPath.replace(/[^/]+$/, ''), name = sheetPath.split('/').pop(), rp = `${dir}_rels/${name}.rels`;
+  let rels = z.file(rp) ? await z.file(rp).async('string') : '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+  const m = /<Relationship [^>]*Type="[^"]*\/drawing"[^>]*>/.exec(rels);
+  let dp;
+  if (m) dp = 'xl/drawings/' + /Target="([^"]+)"/.exec(m[0])[1].split('/').pop();
+  else {
+    const nums = Object.keys(z.files).map(f => /^xl\/drawings\/drawing(\d+)\.xml$/.exec(f)).filter(Boolean).map(x => +x[1]);
+    const n = Math.max(0, ...nums) + 1; dp = `xl/drawings/drawing${n}.xml`;
+    z.file(dp, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"></xdr:wsDr>');
+    const rid = 'rId' + (Math.max(0, ...[...rels.matchAll(/Id="rId(\d+)"/g)].map(x => +x[1])) + 1);
+    z.file(rp, rels.replace('</Relationships>', `<Relationship Id="${rid}" Type="${MC_NSR}/drawing" Target="../drawings/drawing${n}.xml"/></Relationships>`));
+    let s = await bk.rd(sheetPath); const tag = `<drawing r:id="${rid}"/>`;
+    s = s.includes('<legacyDrawing') ? s.replace('<legacyDrawing', tag + '<legacyDrawing') : s.replace('</worksheet>', tag + '</worksheet>');
+    z.file(sheetPath, s);
+    let ct = await bk.rd('[Content_Types].xml');
+    ct = ct.replace('</Types>', `<Override PartName="/${dp}" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>`);
+    if (!/Extension="jpg"/.test(ct)) ct = ct.replace('</Types>', '<Default Extension="jpg" ContentType="image/jpeg"/></Types>');
+    z.file('[Content_Types].xml', ct);
+  }
+  const drp = dp.replace(/[^/]+$/, '') + '_rels/' + dp.split('/').pop() + '.rels';
+  if (!z.file(drp)) z.file(drp, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>');
+  return { dp, drp };
+}
+async function mcAddMonth(bk, nm, trades, C) {
+  const sp = bk.sheets[nm]; let s = await bk.rd(sp); const rows = mcRows(s);
+  const cm = /COUNTA\(G6:G(\d+)\)/.exec(s), cap = cm ? +cm[1] : 55;
+  const filled = Object.keys(rows).map(Number).filter(r => r >= 6 && (mcCell(bk, rows[r], 'G' + r) || '') !== '');
+  const first = filled.length ? Math.max(...filled) + 1 : 6;
+  let end = Math.max(cap, first + trades.length - 1); if (end > cap) end = cap < 100 ? Math.max(end, cap + 50) : end + 20;
+  const sty = {};
+  for (const r in rows) if (+r >= 6 && +r <= cap && !(r % 2 in sty) && rows[r].includes(`<c r="A${r}"`)) {
+    const gs = c => ((new RegExp(`<c r="${c}${r}" s="(\\d+)"`).exec(rows[r])) || /s="(\d+)"/.exec(rows[r]))[1];
+    sty[r % 2] = { A: gs('A'), B: gs('B'), C: gs('C'), H: gs('H'), I: gs('I'), K: gs('K') };
+  }
+  const istr = (ref, st, v) => `<c r="${ref}" s="${st}" t="inlineStr"><is><t>${mcEsc(v)}</t></is></c>`;
+  const rowXml = (r, t) => {
+    const S = sty[r % 2] || sty[0] || sty[1];
+    if (!t) return `<row r="${r}" spans="1:12" ht="36" customHeight="1"><c r="A${r}" s="${S.A}"><v>${r - 5}</v></c><c r="B${r}" s="${S.B}"/>` +
+      'CDEFG'.split('').map(c => `<c r="${c}${r}" s="${S.C}"/>`).join('') + `<c r="H${r}" s="${S.H}"/><c r="I${r}" s="${S.I}" t="str"><f>${mcEsc(MC_FORM(r))}</f><v></v></c><c r="J${r}" s="${S.C}"/><c r="K${r}" s="${S.K}"/><c r="L${r}" s="${S.C}"/></row>`;
+    const val = Math.abs(t.pnl), signed = t.res.startsWith('TP') ? val : t.res === 'SL' ? -val : 0;
+    const serial = Math.round((Date.parse(t.day + 'T00:00:00Z') - Date.UTC(1899, 11, 30)) / 864e5);
+    return `<row r="${r}" spans="1:12" ht="217.5" customHeight="1"><c r="A${r}" s="${S.A}"><v>${r - 5}</v></c><c r="B${r}" s="${S.B}"><v>${serial}</v></c>` +
+      istr('C' + r, S.C, t.ses) + istr('D' + r, S.C, 'XAU/USD') + istr('E' + r, S.C, 'FBO') + istr('F' + r, S.C, t.buy ? 'Achat' : 'Vente') + istr('G' + r, S.C, t.res) +
+      `<c r="H${r}" s="${S.H}"><v>${+val.toFixed(2)}</v></c><c r="I${r}" s="${S.I}"><f>${mcEsc(MC_FORM(r))}</f><v>${signed}</v></c><c r="J${r}" s="${S.C}"/>` +
+      istr('K' + r, S.K, t.text) + `<c r="L${r}" s="${S.C}"/></row>`;
+  };
+  const delta = end - cap;
+  const tailRows = Object.keys(rows).map(Number).filter(r => r > cap).sort((a, b) => a - b);
+  const tail = tailRows.map(r => delta ? rows[r].replace(new RegExp(`(<(?:row|c) r="[A-Z]*)${r}"`, 'g'), `$1${r + delta}"`) : rows[r]).join('');
+  const keep = Object.keys(rows).map(Number).filter(r => r < first).sort((a, b) => a - b).map(r => rows[r]).join('');
+  let body = ''; for (let r = first; r <= end; r++) body += rowXml(r, trades[r - first]);
+  s = s.replace(/<sheetData>[\s\S]*<\/sheetData>/, () => '<sheetData>' + keep + body + tail + '</sheetData>');
+  // formules partagées dont la formule « maître » a été réécrite → explicites
+  for (const si of new Set([...s.matchAll(/<f t="shared" si="(\d+)"\/>/g)].map(x => x[1])))
+    if (!new RegExp(`<f t="shared"[^>]*si="${si}"[^>]*>[^<]`).test(s))
+      s = s.replace(new RegExp(`<c r="I(\\d+)"([^>]*)><f t="shared" si="${si}"/>`, 'g'), (_, r, a) => `<c r="I${r}"${a}><f>${mcEsc(MC_FORM(r))}</f>`);
+  if (delta) {
+    s = s.replace(new RegExp(`\\b([A-L])6:(?:\\1)${cap}\\b`, 'g'), (_, c) => `${c}6:${c}${end}`);
+    s = s.replace(/<mergeCell ref="([A-L])(\d+):([A-L])(\d+)"\/>/g, (m0, a, r1, b, r2) => +r1 <= cap ? m0 : `<mergeCell ref="${a}${+r1 + delta}:${b}${+r2 + delta}"/>`);
+    const last = Math.max(end, ...tailRows.map(r => r + delta));
+    s = s.replace(/<dimension ref="A1:([A-Z]+)\d+"\/>/, (_, c) => `<dimension ref="A1:${c}${last}"/>`);
+    const bp = bk.sheets['Bilan 2026'] || 'xl/worksheets/sheet1.xml'; let bs = await bk.rd(bp);
+    const q = nm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    bs = bs.replace(new RegExp(`((?:'${q}'|${q})!)([A-Z])6:(?:\\2)${cap}\\b`, 'g'), (_, p, c) => `${p}${c}6:${c}${end}`);
+    bk.zip.file(bp, bs);
+  }
+  bk.zip.file(sp, s);
+  // images
+  const { dp, drp } = await mcDrawing(bk, sp); let ds = await bk.rd(dp), dr = await bk.rd(drp);
+  let rid = Math.max(0, ...[...dr.matchAll(/Id="rId(\d+)"/g)].map(x => +x[1])) + 1;
+  let cid = Math.max(1, ...[...ds.matchAll(/cNvPr id="(\d+)"/g)].map(x => +x[1])) + 1;
+  let img = Math.max(0, ...Object.keys(bk.zip.files).map(f => /^xl\/media\/image(\d+)\./.exec(f)).filter(Boolean).map(x => +x[1])) + 1;
+  let anchors = '', rl = '';
+  for (let k = 0; k < trades.length; k++) {
+    const r = first + k, n = r - 5, fn = `image${img + k}.jpg`;
+    bk.zip.file('xl/media/' + fn, await mcChart(trades[k], n, nm, C));
+    rl += `<Relationship Id="rId${rid + k}" Type="${MC_NSR}/image" Target="../media/${fn}"/>`;
+    anchors += `<xdr:oneCellAnchor><xdr:from><xdr:col>11</xdr:col><xdr:colOff>95250</xdr:colOff><xdr:row>${r - 1}</xdr:row><xdr:rowOff>38100</xdr:rowOff></xdr:from><xdr:ext cx="4105275" cy="2647950"/>` +
+      `<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${cid + k}" name="Trade ${n}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>` +
+      `<xdr:blipFill><a:blip xmlns:r="${MC_NSR}" r:embed="rId${rid + k}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>` +
+      `<xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`;
+  }
+  bk.zip.file(dp, ds.replace('</xdr:wsDr>', anchors + '</xdr:wsDr>'));
+  bk.zip.file(drp, dr.replace('</Relationships>', rl + '</Relationships>'));
+  mcLog(`  ✓ ${nm} : +${trades.length} trade${trades.length > 1 ? 's' : ''} (lignes ${first}–${first + trades.length - 1})`, 'gh-ok');
+}
+async function mcFinish(bk) {
+  const z = bk.zip;
+  if (z.file('xl/calcChain.xml')) {
+    z.remove('xl/calcChain.xml');
+    z.file('[Content_Types].xml', (await bk.rd('[Content_Types].xml')).replace(/<Override PartName="\/xl\/calcChain.xml"[^>]*\/>/, ''));
+    z.file('xl/_rels/workbook.xml.rels', (await bk.rd('xl/_rels/workbook.xml.rels')).replace(/<Relationship [^>]*calcChain[^>]*\/>/, ''));
+  }
+  let w = await bk.rd('xl/workbook.xml');
+  if (!/fullCalcOnLoad/.test(w)) w = /<calcPr/.test(w) ? w.replace('<calcPr', '<calcPr fullCalcOnLoad="1"') : w.replace('</workbook>', '<calcPr fullCalcOnLoad="1"/></workbook>');
+  z.file('xl/workbook.xml', w);
+  return z.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+async function majClaude() {
+  const go = document.getElementById('mcGo'); go.disabled = true;
+  document.getElementById('mcLog').innerHTML = '';
+  try {
+    const c = ghCfg();
+    mcLog('1. Téléchargement du journal Excel depuis GitHub…');
+    const JSZip = await mcLoadJSZip();
+    let r = null;
+    if (c.token) r = await fetch(`https://api.github.com/repos/${c.repo}/contents/${encodeURIComponent(XL_FILE)}?t=${Date.now()}`, { headers: { Accept: 'application/vnd.github.raw', Authorization: 'Bearer ' + c.token }, cache: 'no-store' });
+    if (!r || !r.ok) r = await fetch(XL_FILE + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('fichier Excel introuvable sur GitHub (' + r.status + ')');
+    const buf = await r.arrayBuffer();
+    if (buf.byteLength < 10000) throw new Error('le fichier Excel sur GitHub est vide ou abîmé (' + buf.byteLength + ' octets)');
+    mcLog(`   ${(buf.byteLength / 1048576).toFixed(1)} Mo reçus.`);
+    const bk = await mcBook(await JSZip.loadAsync(buf));
+    const ex = await mcExisting(bk);
+    mcLog(`2. Comparaison avec tes trades importés (Ufunded)… dernier jour dans l'Excel : ${ex.last.split('-').reverse().join('/')}`);
+    const all = mcTrades(ex.last);
+    const miss = all.filter(t => !ex.keys.has(`${t.day}|${t.tIn.slice(11, 16)}|${t.pIn.toFixed(2)}`));
+    if (!miss.length) {
+      mcLog('✓ Rien à ajouter : l’Excel contient déjà tous tes trades XAU/USD importés.', 'gh-ok');
+      mcLog('   (Importe d’abord ton nouveau relevé Ufunded avec « Importer Ufunded », puis relance.)');
+      return;
+    }
+    mcLog(`   ${miss.length} trade${miss.length > 1 ? 's' : ''} XAU/USD à ajouter (GER40 et autres symboles ignorés).`);
+    mcLog('3. Prix de l’or minute par minute pour l’analyse et les graphiques…');
+    const C = await mcCandles(miss);
+    const days = new Set(miss.map(t => t.day)); mcAnalyse(all.filter(t => days.has(t.day)), C);
+    mcLog('4. Ajout des trades, analyses et graphiques…');
+    for (let mi = 0; mi < 12; mi++) { const part = miss.filter(t => +t.day.slice(5, 7) === mi + 1); if (part.length) await mcAddMonth(bk, MC_MOIS[mi], part, C); }
+    const blob = await mcFinish(bk);
+    mcLog('5. Téléchargement du fichier à jour sur cet ordinateur…');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = XL_FILE; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    mcLog('6. Publication sur GitHub (Menu → Publier une MAJ du journal Excel)…');
+    if (!c.token) { mcLog('   Pas de jeton GitHub : fichier seulement téléchargé. Menu → Réglages GitHub pour l’ajouter.', 'gh-wa'); return; }
+    const ok = await uploadXlsx(new File([blob], XL_FILE, { type: blob.type }));
+    if (ok) mcLog(`✓ Terminé : ${miss.length} trade${miss.length > 1 ? 's' : ''} ajouté${miss.length > 1 ? 's' : ''}, fichier publié. Le bouton vert le proposera dans ~1 min.`, 'gh-ok');
+    else mcLog('✗ Publication impossible : le fichier est dans tes Téléchargements, dépose-le via GitHub → Add file → Upload files.', 'gh-ko');
+  } catch (e) {
+    mcLog('✗ ' + (e.message || e), 'gh-ko');
+  } finally { go.disabled = false; }
+}
+
+// À l'ouverture : récupère tradelog.json depuis GitHub (même sur un autre ordinateur)
+async function loadFromGitHub() {
+  const c = ghCfg();
+  let obj = null;
+  try { const f = await ghGetFile(c); obj = f && f.obj; }
+  catch (e) { if (c.token && (e.status === 401 || e.status === 403)) localStorage.setItem('tradelog_gh_bad', String(e.status)); }
+  if (!obj) { try { const r = await fetch(GH_FILE + '?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) obj = await r.json(); } catch (e) {} }
+  if (!obj || !obj.days) { renderGhState(); return; }
+  const days = ghMerge(getData(), obj.days);   // rien n'est perdu : chaque journée, la plus récente gagne
+  putData(days, true);
+  if (obj.account) { const loc = ddCfg(); if (!localStorage.getItem('tradelog_dd') || (obj.account.at || '') > (loc.at || '')) localStorage.setItem('tradelog_dd', JSON.stringify(obj.account)); }
+  if (obj.import) {
+    let cur = null; try { cur = JSON.parse(localStorage.getItem('tradelog_import') || 'null'); } catch (e) {}
+    localStorage.setItem('tradelog_import', JSON.stringify(mergeImportMeta(cur, obj.import)));
+  }
+  if (!localStorage.getItem('tradelog_gh_at')) localStorage.setItem('tradelog_gh_at', obj.updatedAt);
+  renderCalendar(); loadDayForm(selDay); renderImportMeta(); renderGhState(); renderDD();
+}
+
+/* ═══════════════════════════════════════════
+   P&L PAR HEURE
+═══════════════════════════════════════════ */
+function allTrades() {
+  const D = getData(), out = [];
+  for (const k in D) for (const t of (D[k].trades || [])) if (t.tIn) out.push(Object.assign({ day: k }, t));
+  return out;
+}
+function openHours() {
+  const syms = {}; allTrades().forEach(t => syms[t.sym] = (syms[t.sym] || 0) + 1);
+  const sel = document.getElementById('hrSym'), cur = sel.value;
+  sel.innerHTML = '<option value="">Tous les symboles</option>' + Object.keys(syms).sort((a, b) => syms[b] - syms[a]).map(s => `<option value="${s}">${s} (${syms[s]})</option>`).join('');
+  if (cur) sel.value = cur;
+  renderHours();
+  document.getElementById('hoursModal').classList.add('open');
+}
+function closeHours() { document.getElementById('hoursModal').classList.remove('open'); }
+function renderHours() {
+  const per = document.getElementById('hrPeriod').value, sym = document.getElementById('hrSym').value;
+  const ym = `${viewY}-${String(viewM + 1).padStart(2, '0')}`;
+  const lim = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+  const T = allTrades().filter(t => (!sym || t.sym === sym) &&
+    (per === 'all' || (per === 'month' && t.day.startsWith(ym)) || (per === 'year' && t.day.startsWith(String(viewY))) || (per === '30' && t.day >= lim)));
+  const H = {};
+  for (const t of T) { const h = +t.tIn.slice(11, 13); const o = H[h] || (H[h] = { n: 0, w: 0, p: 0 }); o.n++; o.p += t.pnl; if (t.pnl > 0) o.w++; }
+  const hs = Object.keys(H).map(Number).sort((a, b) => a - b);
+  const rows = document.getElementById('hrRows'), best = document.getElementById('hrBest');
+  if (!hs.length) { rows.innerHTML = '<tr><td colspan="6" style="color:var(--txt2);padding:14px">Aucun trade détaillé sur cette période. Importe un relevé Ufunded pour remplir ce tableau.</td></tr>'; best.innerHTML = ''; return; }
+  const mx = Math.max(...hs.map(h => Math.abs(H[h].p))) || 1;
+  const sess = h => h < 8 ? 'Asie / nuit' : h < 14 ? 'Europe' : h < 18 ? 'Ouverture US' : 'Après-midi US';
+  let last = '', html = '';
+  for (const h of hs) {
+    const o = H[h], s = sess(h);
+    if (s !== last) { html += `<tr class="sess"><td colspan="6">${s}</td></tr>`; last = s; }
+    const w = Math.abs(o.p) / mx * 50, c = o.p >= 0 ? 'var(--win)' : 'var(--loss)';
+    html += `<tr><td><b>${String(h).padStart(2, '0')} h</b></td><td class="n">${o.n}</td><td class="n">${Math.round(o.w / o.n * 100)} %</td>
+      <td class="n" style="color:${c};font-weight:700">${eur(Math.round(o.p))}</td><td class="n" style="color:${c}">${eur(Math.round(o.p / o.n))}</td>
+      <td class="bar"><div><i></i><span style="background:${c};width:${w}%;${o.p >= 0 ? 'left:50%' : 'right:50%'}"></span></div></td></tr>`;
+  }
+  rows.innerHTML = html;
+  const ok = hs.filter(h => H[h].n >= 3), by = f => ok.slice().sort(f)[0];
+  const b = by((a, c) => H[c].p - H[a].p), w = by((a, c) => H[a].p - H[c].p);
+  const tot = T.reduce((a, t) => a + t.pnl, 0);
+  best.innerHTML = ok.length ? `<div>✅ Meilleure heure (≥ 3 trades)<b style="color:var(--win)">${String(b).padStart(2, '0')} h · ${eur(Math.round(H[b].p))} · ${H[b].n} trades</b></div>
+    <div>⛔ Heure à éviter<b style="color:var(--loss)">${String(w).padStart(2, '0')} h · ${eur(Math.round(H[w].p))} · ${H[w].n} trades</b></div>` :
+    `<div style="grid-column:1/-1">${T.length} trades · ${eur(Math.round(tot))}</div>`;
+}
+
+/* ═══════════════════════════════════════════
+   DRAWDOWN MAXIMUM DU COMPTE
+═══════════════════════════════════════════ */
+// garde les infos du relevé le plus RÉCENT (fin de période) et additionne les dépôts de tous les relevés
+function mergeImportMeta(a, b) {
+  if (!a) return b; if (!b) return a;
+  const end = m => m && m.period ? Date.parse(m.period[1]) || 0 : 0;
+  const top = end(b) > end(a) ? b : a;
+  const ops = [];
+  for (const o of [...(a.ops || []), ...(b.ops || [])]) if (!ops.some(x => x.day === o.day && x.time === o.time && x.type === o.type && x.amount === o.amount)) ops.push(o);
+  const firsts = [a.first, b.first, a.period && a.period[0], b.period && b.period[0]].filter(Boolean).sort((x, y) => Date.parse(x) - Date.parse(y));
+  return Object.assign({}, top, { ops, first: firsts[0] || null, at: [a.at, b.at].filter(Boolean).sort().pop() });
+}
+function ddCfg() {
+  let c = null; try { c = JSON.parse(localStorage.getItem('tradelog_dd') || 'null'); } catch (e) {}
+  return Object.assign({ size: 1035000, maxDD: 42000, balance: null, initial: 360000, at: null }, c || {});
+}
+function usd(v, dec) { return (v < 0 ? '−' : '') + Math.abs(v).toLocaleString('fr-FR', { minimumFractionDigits: dec ? 2 : 0, maximumFractionDigits: dec ? 2 : 0 }) + ' $'; }
+function ddBalance(c) {
+  if (c.balance != null && c.balance !== '') return +c.balance;
+  let m = null; try { m = JSON.parse(localStorage.getItem('tradelog_import') || 'null'); } catch (e) {}
+  return m && m.balance != null ? m.balance : null;
+}
+// P&L net total du compte = solde − capital de départ − dépôts − ajustements (comme le tableau de bord Ufunded)
+function accountPnl() {
+  const c = ddCfg(), bal = ddBalance(c);
+  let m = null; try { m = JSON.parse(localStorage.getItem('tradelog_import') || 'null'); } catch (e) {}
+  if (bal == null || !c.initial) return null;
+  let dep, adj;
+  if (m && m.ops && m.ops.length) { dep = m.ops.filter(o => o.type === 'DEPOSIT').reduce((a, o) => a + o.amount, 0) - m.ops.filter(o => o.type === 'WITHDRAWAL').reduce((a, o) => a + Math.abs(o.amount), 0); adj = m.ops.filter(o => o.type === 'ADJUSTMENT').reduce((a, o) => a + o.amount, 0); }
+  else if (m && m.account === '8448245') { dep = 675000; adj = 3236; }   // relevé du 04/11/2026 importé avant cette version
+  else return null;
+  const total = bal - c.initial - dep - adj;
+  const journal = allTrades().reduce((a, t) => a + t.pnl, 0);
+  return { total, dep, adj, initial: c.initial, journal, before: total - journal };
+}
+function tradeStats(T) {
+  const W = T.filter(t => t.pnl > 0), L = T.filter(t => t.pnl < 0);
+  const gw = W.reduce((a, t) => a + t.pnl, 0), gl = L.reduce((a, t) => a + t.pnl, 0);
+  return { n: T.length, w: W.length, l: L.length, net: gw + gl, avgW: W.length ? gw / W.length : 0, avgL: L.length ? gl / L.length : 0, pf: gl ? gw / -gl : null };
+}
+// Marge = drawdown max − perte nette totale du compte (P&L net total, comme Ufunded)
+function ddState() {
+  const c = ddCfg(), bal = ddBalance(c);
+  if (bal == null) return null;
+  const ap = accountPnl();
+  const used = ap ? Math.max(-ap.total, 0) : Math.max(c.size - bal, 0);
+  const left = c.maxDD - used;
+  return { c, bal, ap, used, left, pct: Math.min(used / c.maxDD * 100, 100), floor: bal - left };
+}
+function renderDD() {
+  const c = ddCfg(), bal = ddBalance(c), S = ddState(), floor = S ? S.floor : c.size - c.maxDD;
+  const el = id => document.getElementById(id);
+  el('ddFloor').textContent = 'Seuil ' + usd(floor);
+  el('ddSize').textContent = 'Taille ' + usd(c.size);
+  if (bal == null) { el('ddLeft').textContent = '—'; el('ddBal').textContent = '—'; el('ddUsed').textContent = 'importe un relevé'; el('ddFill').style.width = '0'; el('ddAlert').textContent = ''; el('ddLoss').textContent = '—'; return; }
+  const left = S.left, used = S.used, pct = S.pct;
+  const col = pct >= 80 ? 'var(--loss)' : pct >= 50 ? 'var(--be)' : 'var(--win)';
+  el('ddLeft').textContent = usd(left, true); el('ddLeft').style.color = col;
+  el('ddBal').textContent = usd(bal, true);
+  const ap = accountPnl();
+  el('ddPnl').textContent = ap ? usd(ap.total, true) : '—'; el('ddPnl').style.color = ap ? (ap.total >= 0 ? 'var(--win)' : 'var(--loss)') : '';
+  el('ddUsed').textContent = `perte nette ${usd(Math.round(used))} / ${usd(c.maxDD)} (${Math.round(used / c.maxDD * 100)} %)`;
+  el('ddUsed').title = `Marge = ${usd(c.maxDD)} (drawdown max) − ${usd(used, true)} (perte nette totale du compte) = ${usd(left, true)}. Le compte est stoppé si le solde descend sous ${usd(floor, true)}.`;
+  el('ddFill').style.width = Math.min(pct, 100) + '%'; el('ddFill').style.background = col;
+  const st = tradeStats(allTrades());
+  if (st.avgL) {
+    const L = -st.avgL, L10 = Math.round(L / 10), f = n => n.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+    el('ddLoss').innerHTML = `${f(left / L)} × ${usd(Math.round(L))} <span style="color:var(--txt2);font-weight:400">ou</span> <span style="color:var(--win)">${f(Math.floor(left / L10))} × ${usd(L10)}</span>`;
+    el('ddLoss').title = `Avec ta perte moyenne actuelle (${usd(Math.round(L))}) : ${f(left / L)} pertes avant le seuil. En divisant le risque par 10 (${usd(L10)} par perte) : ${Math.floor(left / L10)} pertes.`;
+  } else el('ddLoss').textContent = '—';
+  const a = el('ddAlert');
+  if (left <= 0) { a.textContent = '⛔ Limite atteinte'; a.style.cssText = 'background:var(--loss-bg);color:var(--loss);border:1px solid var(--loss-brd)'; }
+  else if (pct >= 80) { a.textContent = '⚠ Zone critique'; a.style.cssText = 'background:var(--loss-bg);color:var(--loss);border:1px solid var(--loss-brd)'; }
+  else if (pct >= 50) { a.textContent = '⚠ Prudence'; a.style.cssText = 'background:var(--be-bg);color:var(--be);border:1px solid var(--be-brd)'; }
+  else { a.textContent = '✓ Marge confortable'; a.style.cssText = 'background:var(--win-bg);color:var(--win);border:1px solid var(--win-brd)'; }
+}
+function openDdCfg() {
+  const c = ddCfg();
+  document.getElementById('ddCfgSize').value = c.size;
+  document.getElementById('ddCfgMax').value = c.maxDD;
+  document.getElementById('ddCfgBal').value = c.balance != null ? c.balance : '';
+  document.getElementById('ddCfgInit').value = c.initial;
+  document.getElementById('ddModal').classList.add('open');
+}
+function saveDdCfg() {
+  const v = id => document.getElementById(id).value.trim();
+  const c = { size: +v('ddCfgSize') || 1035000, maxDD: +v('ddCfgMax') || 42000, balance: v('ddCfgBal') === '' ? null : +v('ddCfgBal'), initial: +v('ddCfgInit') || 360000, at: new Date().toISOString() };
+  localStorage.setItem('tradelog_dd', JSON.stringify(c));
+  localStorage.setItem('tradelog_dirty', '1');
+  document.getElementById('ddModal').classList.remove('open');
+  renderDD(); renderGhState();
+}
+
+/* ═══════════════════════════════════════════
+   INDICATEURS
+═══════════════════════════════════════════ */
+function openInd() { renderInd(); document.getElementById('indModal').classList.add('open'); }
+function renderInd() {
+  const per = document.getElementById('indPeriod').value;
+  const ym = `${viewY}-${String(viewM + 1).padStart(2, '0')}`, lim = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+  const T = allTrades().filter(t => per === 'all' || (per === 'month' && t.day.startsWith(ym)) || (per === 'year' && t.day.startsWith(String(viewY))) || (per === '30' && t.day >= lim));
+  const box = document.getElementById('indBody');
+  if (!T.length) { box.innerHTML = '<div style="color:var(--txt2);padding:12px 0">Aucun trade détaillé sur cette période.</div>'; return; }
+  const s = tradeStats(T);
+  // P&L par jour, drawdown du journal
+  const byDay = {}; T.forEach(t => byDay[t.day] = (byDay[t.day] || 0) + t.pnl);
+  const days = Object.keys(byDay).sort();
+  let cum = 0, peak = 0, mdd = 0; days.forEach(d => { cum += byDay[d]; peak = Math.max(peak, cum); mdd = Math.min(mdd, cum - peak); });
+  const c = ddCfg(), bal = ddBalance(c);
+  const ret = bal != null ? (bal - c.size) / c.size * 100 : null;
+  const rr = s.avgL ? s.avgW / -s.avgL : 0;
+  const k = (l, v, col, sub) => `<div class="ind-c"><div class="l">${l}</div><div class="v" style="color:${col || 'var(--txt)'}">${v}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`;
+  const sg = v => v >= 0 ? 'var(--win)' : 'var(--loss)';
+  // par jour de semaine
+  const DN = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'], wd = {};
+  days.forEach(d => { const i = (new Date(d + 'T12:00:00').getDay() + 6) % 7; const o = wd[i] || (wd[i] = { p: 0, n: 0 }); o.p += byDay[d]; o.n++; });
+  // par instrument
+  const ins = {}; T.forEach(t => { const o = ins[t.sym] || (ins[t.sym] = { p: 0, n: 0 }); o.p += t.pnl; o.n++; });
+  const bars = (rows) => { const mx = Math.max(...rows.map(r => Math.abs(r[1]))) || 1;
+    return rows.map(([lab, v, sub]) => `<div class="ind-row"><span>${lab}</span><div class="bw"><i></i><span style="background:${sg(v)};width:${Math.abs(v) / mx * 50}%;${v >= 0 ? 'left:50%' : 'right:50%'}"></span></div><span class="n" style="color:${sg(v)}" title="${sub || ''}">${usd(Math.round(v))}</span></div>`).join(''); };
+  const ap = accountPnl();
+  box.innerHTML = `${ap && per === 'all' ? `<div class="ind-c" style="margin-bottom:8px;border-color:var(--border2)"><div class="l">P&L net total du compte (comme Ufunded)</div>
+      <div class="v" style="font-size:22px;color:${sg(ap.total)}">${usd(ap.total, true)}</div>
+      <div class="s">Solde ${usd(ddBalance(ddCfg()), true)} − capital de départ ${usd(ap.initial)} − dépôts ${usd(ap.dep)} − ajustements ${usd(ap.adj)}<br>
+      = trades du journal ${usd(ap.journal, true)}${Math.abs(ap.before) >= 1 ? ` + <b>${usd(ap.before, true)}</b> réalisés avant le premier relevé importé (absents du journal)` : ''}</div></div>` : ''}
+    <div class="ind-grid">
+      ${k(per === 'all' ? 'P&L des trades du journal' : 'P&L net total', usd(Math.round(s.net)), sg(s.net), s.n + ' trades · ' + days.length + ' jours')}
+      ${k('P&L moyen / jour', usd(Math.round(s.net / days.length)), sg(s.net))}
+      ${k('Taux de réussite', Math.round(s.w / s.n * 100) + ' %', null, s.w + ' gagnants · ' + s.l + ' perdants')}
+      ${k('Ratio gain / perte', '1 : ' + rr.toFixed(2), rr >= 1 ? 'var(--win)' : 'var(--loss)', 'gain moyen ÷ perte moyenne')}
+      ${k('Gain moyen', usd(Math.round(s.avgW)), 'var(--win)')}
+      ${k('Perte moyenne', usd(Math.round(s.avgL)), 'var(--loss)')}
+      ${k('Profit factor', s.pf ? s.pf.toFixed(2) : '—', s.pf >= 1 ? 'var(--win)' : 'var(--loss)', 'gains ÷ pertes')}
+      ${k('Drawdown max (journal)', usd(Math.round(mdd)), 'var(--loss)', 'pire baisse depuis un sommet')}
+      ${ret != null ? k('% Rendement compte', ret.toFixed(2) + ' %', sg(ret), 'solde vs ' + usd(c.size)) : ''}
+      ${(() => { const S = ddState(); return S ? k('Marge drawdown', usd(Math.round(S.left)), S.left < c.maxDD * 0.2 ? 'var(--loss)' : S.left < c.maxDD * 0.5 ? 'var(--be)' : 'var(--win)', usd(c.maxDD) + ' − ' + usd(Math.round(S.used)) + ' · seuil ' + usd(Math.round(S.floor))) : ''; })()}
+      ${k('Seuil de réussite utile', Math.round(1 / (1 + rr) * 100) + ' %', null, 'win rate minimum avec ce ratio')}
+      ${k('Meilleur / pire jour', usd(Math.round(Math.max(...Object.values(byDay)))) + ' / ' + usd(Math.round(Math.min(...Object.values(byDay)))), null)}
+    </div>
+    <div class="ind-two">
+      <div class="ind-box"><h4>P&L par jour de la semaine</h4>${bars([0, 1, 2, 3, 4, 5, 6].filter(i => wd[i]).map(i => [DN[i], wd[i].p, wd[i].n + ' jours']))}</div>
+      <div class="ind-box"><h4>Instruments tradés</h4>${bars(Object.keys(ins).sort((a, b) => ins[b].n - ins[a].n).map(x => [x, ins[x].p, ins[x].n + ' trades']))}</div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+renderCalendar();
+renderDD();
+loadDayForm(selDay);
+renderGhState();
+loadFromGitHub();
+renderXlsx();
+window.addEventListener('beforeunload', e => { if (localStorage.getItem('tradelog_dirty') === '1') { e.preventDefault(); e.returnValue = ''; } });
+</script>
+</body>
+</html>
