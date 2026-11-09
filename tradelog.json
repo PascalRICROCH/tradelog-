@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T13:01:58.378Z",
+  "updatedAt": "2026-11-09T14:09:37.980Z",
   "import": {
     "account": "8448245",
     "period": [
       "01 Nov 2026",
       "09 Nov 2026"
     ],
-    "created": "09/11/2026 12:54",
-    "balance": 1000913.95,
-    "at": "2026-11-09T13:01:54.914Z",
+    "created": "09/11/2026 15:09",
+    "balance": 999913.95,
+    "at": "2026-11-09T14:09:36.368Z",
     "ops": [
       {
         "day": "2026-06-10",
@@ -5941,7 +5941,7 @@
       "amount": "2970.49",
       "symbols": "XAUUSD, GER40",
       "notes": "Ufunded · 15 trades (8 gagnants, 7 perdants)",
-      "savedAt": "2026-11-09T13:01:54.914Z",
+      "savedAt": "2026-11-09T14:09:36.368Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6109,7 +6109,7 @@
       "amount": "1556.81",
       "symbols": "XAUUSD, GER40",
       "notes": "Ufunded · 32 trades (12 gagnants, 20 perdants)",
-      "savedAt": "2026-11-09T13:01:54.914Z",
+      "savedAt": "2026-11-09T14:09:36.368Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6477,7 +6477,7 @@
       "amount": "16464.97",
       "symbols": "XAUUSD",
       "notes": "Ufunded · 7 trades (1 gagnant, 6 perdants)",
-      "savedAt": "2026-11-09T13:01:54.914Z",
+      "savedAt": "2026-11-09T14:09:36.368Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6827,10 +6827,10 @@
     },
     "2026-11-09": {
       "result": "loss",
-      "amount": "2657.44",
-      "symbols": "GER40, XAUUSD",
-      "notes": "Ufunded · 8 trades (2 gagnants, 6 perdants)",
-      "savedAt": "2026-11-09T13:01:54.914Z",
+      "amount": "3657.44",
+      "symbols": "XAUUSD, GER40",
+      "notes": "Ufunded · 9 trades (2 gagnants, 7 perdants)",
+      "savedAt": "2026-11-09T14:09:36.368Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6912,6 +6912,16 @@
           "tOut": "2026-11-09 10:48:44",
           "pOut": 25993.52,
           "pnl": -765.74
+        },
+        {
+          "sym": "XAUUSD",
+          "dir": "Vente",
+          "lots": 2,
+          "tIn": "2026-11-09 14:14:49",
+          "pIn": 4118.99,
+          "tOut": "2026-11-09 14:17:38",
+          "pOut": 4123.99,
+          "pnl": -1000
         }
       ]
     },
@@ -6920,7 +6930,7 @@
       "amount": "1637.95",
       "symbols": "XAUUSD",
       "notes": "Ufunded · 15 trades (10 gagnants, 4 perdants)",
-      "savedAt": "2026-11-09T13:01:54.914Z",
+      "savedAt": "2026-11-09T14:09:36.368Z",
       "source": "ufunded",
       "trades": [
         {
@@ -7080,7 +7090,7 @@
       "amount": "776.48",
       "symbols": "XAUUSD",
       "notes": "Ufunded · 6 trades (5 gagnants, 1 perdant)",
-      "savedAt": "2026-11-09T13:01:54.914Z",
+      "savedAt": "2026-11-09T14:09:36.368Z",
       "source": "ufunded",
       "trades": [
         {
