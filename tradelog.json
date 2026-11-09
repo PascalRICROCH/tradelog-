@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T12:14:49.318Z",
+  "updatedAt": "2026-11-09T13:01:58.378Z",
   "import": {
     "account": "8448245",
     "period": [
@@ -9,7 +9,7 @@
     ],
     "created": "09/11/2026 12:54",
     "balance": 1000913.95,
-    "at": "2026-11-09T12:10:16.119Z",
+    "at": "2026-11-09T13:01:54.914Z",
     "ops": [
       {
         "day": "2026-06-10",
@@ -5941,7 +5941,7 @@
       "amount": "2970.49",
       "symbols": "XAUUSD, GER40",
       "notes": "Ufunded · 15 trades (8 gagnants, 7 perdants)",
-      "savedAt": "2026-11-09T12:10:16.119Z",
+      "savedAt": "2026-11-09T13:01:54.914Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6109,7 +6109,7 @@
       "amount": "1556.81",
       "symbols": "XAUUSD, GER40",
       "notes": "Ufunded · 32 trades (12 gagnants, 20 perdants)",
-      "savedAt": "2026-11-09T12:10:16.119Z",
+      "savedAt": "2026-11-09T13:01:54.914Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6477,7 +6477,7 @@
       "amount": "16464.97",
       "symbols": "XAUUSD",
       "notes": "Ufunded · 7 trades (1 gagnant, 6 perdants)",
-      "savedAt": "2026-11-09T12:10:16.119Z",
+      "savedAt": "2026-11-09T13:01:54.914Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6830,7 +6830,7 @@
       "amount": "2657.44",
       "symbols": "GER40, XAUUSD",
       "notes": "Ufunded · 8 trades (2 gagnants, 6 perdants)",
-      "savedAt": "2026-11-09T12:10:16.119Z",
+      "savedAt": "2026-11-09T13:01:54.914Z",
       "source": "ufunded",
       "trades": [
         {
@@ -6920,7 +6920,7 @@
       "amount": "1637.95",
       "symbols": "XAUUSD",
       "notes": "Ufunded · 15 trades (10 gagnants, 4 perdants)",
-      "savedAt": "2026-11-09T12:10:16.119Z",
+      "savedAt": "2026-11-09T13:01:54.914Z",
       "source": "ufunded",
       "trades": [
         {
@@ -7080,7 +7080,7 @@
       "amount": "776.48",
       "symbols": "XAUUSD",
       "notes": "Ufunded · 6 trades (5 gagnants, 1 perdant)",
-      "savedAt": "2026-11-09T12:10:16.119Z",
+      "savedAt": "2026-11-09T13:01:54.914Z",
       "source": "ufunded",
       "trades": [
         {
