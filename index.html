@@ -1785,7 +1785,7 @@ async function renderXlsx() {
     if (!j.length) { w.textContent = '· pas encore publié'; return; }
     const d = new Date(j[0].commit.committer.date);
     w.textContent = '· MAJ du ' + d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    a.href = XL_FILE + '?v=' + j[0].sha.slice(0, 7);   // évite l'ancienne version en cache
+       a.href = `https://raw.githubusercontent.com/${ghCfg().repo}/${j[0].sha}/${encodeURIComponent(XL_FILE)}`;   // version exacte du dernier commit, sans délai
   } catch (e) {}
 }
 async function uploadXlsx(f) {
